@@ -1,8 +1,8 @@
 [{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "io.github.baesejin.twa",
-    "sha256_cert_fingerprints": ["45:E2:B0:ED:A5:62:35:13:F7:91:22:9D:9F:D5:52:D1:99:67:D7:CA:C8:B2:B5:1A:73:92:47:79:C4:8F:B8:15"]
-  }
-}]
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.baesejin.twa",
+        "sha256_cert_fingerprints": ["6A:61:8D:5C:C0:7B:54:BC:5A:AC:FF:CA:E8:54:FF:A8:BD:83:1C:20:4E:00:4A:68:4F:4B:A4:F6:C5:7E:35:D3"]
+      }
+    }]
