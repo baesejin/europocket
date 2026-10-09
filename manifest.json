@@ -6,8 +6,8 @@
   "start_url": "./europocket_public.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#0F172A",
+  "background_color": "#F59E0B",
+  "theme_color": "#F59E0B",
   "orientation": "portrait",
   "lang": "ko",
   "icons": [
