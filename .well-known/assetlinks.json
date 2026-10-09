@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.baesejin.twa",
+    "sha256_cert_fingerprints": ["45:E2:B0:ED:A5:62:35:13:F7:91:22:9D:9F:D5:52:D1:99:67:D7:CA:C8:B2:B5:1A:73:92:47:79:C4:8F:B8:15"]
+  }
+}]
