@@ -3,7 +3,10 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './europocket.html',
-  './manifest.json'
+  './europocket_public.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
