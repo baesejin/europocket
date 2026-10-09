@@ -161,7 +161,7 @@
       <!-- Quick Search Bar -->
       <div class="relative mt-1">
         <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
-        <input type="text" id="searchInput" oninput="handleSearch()" onkeyup="handleSearch()" placeholder="상호명, 메모, 카테고리 실시간 검색 (예: Rewe, DM)"
+        <input type="text" id="searchInput" oninput="handleSearch()" onkeyup="handleSearch()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}" placeholder="상호명, 메모, 카테고리 실시간 검색 (예: Rewe, DM)"
           class="w-full pl-10 pr-9 py-2 bg-slate-100 hover:bg-slate-200/70 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition rounded-xl text-xs outline-none text-slate-800 placeholder-slate-400" />
         <button id="clearSearchBtn" onclick="clearSearch()"
           class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -525,7 +525,7 @@
             <div class="pt-3 mt-1 border-t border-slate-100 text-center space-y-1">
               <div class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
                 <span>💛 EuroPocket (유로포켓)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.01.00</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.01.01</span>
               </div>
               <p class="text-[11px] text-slate-400 font-medium">
                 Designed by <span class="font-bold text-slate-600">@pocket.yield</span>
@@ -1526,8 +1526,21 @@
 
       document.getElementById('currentMonthLabel').innerText = `${year}년 ${month}월`;
 
+      const searchInput = document.getElementById('searchInput');
+      const searchQuery = searchInput ? searchInput.value.trim() : '';
+      const isSearchActive = filteredList !== null || searchQuery.length > 0;
+
+      // Ensure summaryCard stays hidden if search query is active
+      const summaryCard = document.getElementById('summaryCard');
+      if (summaryCard) {
+        if (isSearchActive) {
+          summaryCard.classList.add('hidden');
+        } else {
+          summaryCard.classList.remove('hidden');
+        }
+      }
+
       let displayList = filteredList;
-      const isSearchActive = filteredList !== null;
 
       if (!isSearchActive) {
         displayList = expenses.filter(item => item.date.startsWith(monthKey));
@@ -1891,6 +1904,7 @@
       if (searchInput) {
         searchInput.value = keyword;
         handleSearch();
+        searchInput.blur();
       }
     }
 
@@ -2045,7 +2059,7 @@
 
       const targetDate = new Date(date);
       currentDate = targetDate;
-      renderUI();
+      handleSearch();
     }
 
     function deleteCurrentEditingExpense() {
@@ -2054,7 +2068,7 @@
           expenses = expenses.filter(i => i.id !== editingExpenseId);
           saveToStorage();
           closeAddModal();
-          renderUI();
+          handleSearch();
         }
       }
     }
@@ -2970,8 +2984,7 @@
       'exchangeModal',
       'budgetModal',
       'monthPickerModal',
-      'addModal',
-      'searchNotice'
+      'addModal'
     ];
 
     function getTopmostOpenModal() {
@@ -2994,10 +3007,6 @@
         case 'budgetModal': closeBudgetModal(); break;
         case 'monthPickerModal': closeMonthPickerModal(); break;
         case 'addModal': closeAddModal(); break;
-        case 'searchNotice':
-          clearSearch();
-          document.getElementById('searchInput')?.blur();
-          break;
       }
     }
 
