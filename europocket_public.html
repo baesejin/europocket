@@ -940,19 +940,17 @@
   </div>
 
   <script>
-    // Default Expense Categories (Synced with europocket_backup_2026-10-09.json)
+    // Default Expense Categories (Clean Public Distribution Defaults)
     const DEFAULT_CATEGORIES = [
       { id: 'mart', name: '마트/식료품', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-700' },
       { id: 'food', name: '외식/식사', icon: 'ph-fork-knife', color: 'bg-orange-100 text-orange-700' },
-      { id: 'cafe', name: '카페/디저트', icon: 'ph-coffee', color: 'bg-amber-100 text-amber-700' },
+      { id: 'cafe', name: '카페/베이커리', icon: 'ph-coffee', color: 'bg-amber-100 text-amber-700' },
       { id: 'rent', name: '방값/고정비', icon: 'ph-house', color: 'bg-blue-100 text-blue-700' },
-      { id: 'living', name: '생필품', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
-      { id: 'trans', name: '교통', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
-      { id: 'leisure', name: '여가/쇼핑', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
+      { id: 'living', name: '생필품/DM', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
+      { id: 'trans', name: '교통/기차', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
+      { id: 'leisure', name: '의류/패션', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
       { id: 'culture', name: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' },
-      { id: 'etc', name: '여행', icon: 'ph-airplane-tilt', color: 'bg-sky-100 text-sky-700' },
-      { id: 'cat_1791212515494', name: '학업/도서', icon: 'ph-book-open', color: 'bg-indigo-100 text-indigo-700' },
-      { id: 'cat_1791280374039', name: '공과금/전기', icon: 'ph-lightning', color: 'bg-yellow-100 text-yellow-700' },
+      { id: 'etc', name: '기타지출', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' },
     ];
 
     // Default Income Categories (including 금융소득)
@@ -1008,9 +1006,9 @@
 
     let currentDate = new Date();
     let exchangeRate = 1500;
-    let monthlyBudget = 1000.00; // 🎯 월 목표 예산 (기본값)
-    let accountBaseBalance = 0.00; // 🏦 내 계좌 기본 잔액 (초기값 0)
-    let cashWalletBase = 0.00; // 👛 내 현금 주머니 기준/충전 원금 (노트북 백업 기준)
+    let monthlyBudget = 1000.00; // 🎯 월 목표 예산 (배포용 기본값 € 1,000)
+    let accountBaseBalance = 0.00; // 🏦 내 계좌 기본 잔액 (배포용 초기값 € 0.00)
+    let cashWalletBase = 0.00; // 👛 내 현금 주머니 기준 원금 (배포용 초기값 € 0.00)
     let atmMode = 'withdraw'; // 'withdraw' (계좌➔지갑) | 'deposit' (지갑➔계좌)
     let editAtmDirection = 'withdraw'; // 내역 수정 모달 내 ATM 이동 방향
     let selectedTxType = 'expense'; // 'expense' | 'income' | 'atm'
@@ -1018,17 +1016,15 @@
     let selectedPayment = '카드';
     let editingExpenseId = null;
 
-    // 배포용 초기 데이터 (완전 백지 상태)
+    // 배포용 초기 데이터 (완전 백지 상태 - 개인 내역 0건)
     const INITIAL_DATA = [];
 
     let expenses = [];
 
-    // Load from LocalStorage
+    // Load from LocalStorage (Public Edition uses isolated 'europocket_pub_*' keys)
     function initData() {
-      
-
       // 1. Load Expense Categories
-      const savedCats = localStorage.getItem('europocket_categories');
+      const savedCats = localStorage.getItem('europocket_pub_categories');
       if (savedCats) {
         try {
           const parsed = JSON.parse(savedCats);
@@ -1065,7 +1061,7 @@
       }
 
       // 2. Load Income Categories
-      const savedIncCats = localStorage.getItem('europocket_income_categories');
+      const savedIncCats = localStorage.getItem('europocket_pub_income_categories');
       if (savedIncCats) {
         try {
           const parsedInc = JSON.parse(savedIncCats);
@@ -1100,7 +1096,7 @@
       saveCategoriesToStorage();
 
       // Load Transactions
-      const savedExpenses = localStorage.getItem('europocket_expenses');
+      const savedExpenses = localStorage.getItem('europocket_pub_expenses');
       if (savedExpenses) {
         try {
           expenses = JSON.parse(savedExpenses).map(item => ({
@@ -1116,27 +1112,27 @@
       }
 
       // Load Exchange Rate
-      const savedRate = localStorage.getItem('europocket_exchange_rate');
+      const savedRate = localStorage.getItem('europocket_pub_exchange_rate');
       if (savedRate) {
-        exchangeRate = parseFloat(savedRate) || 1508;
+        exchangeRate = parseFloat(savedRate) || 1500;
       } else {
-        exchangeRate = 1508;
+        exchangeRate = 1500;
       }
 
       // Load Monthly Target Budget
-      const savedBudget = localStorage.getItem('europocket_budget');
+      const savedBudget = localStorage.getItem('europocket_pub_budget');
       if (savedBudget !== null) {
         const parsedBudget = parseFloat(savedBudget);
-        monthlyBudget = isNaN(parsedBudget) ? 992.00 : parsedBudget;
+        monthlyBudget = isNaN(parsedBudget) ? 1000.00 : parsedBudget;
       }
 
       // Load Bank Account Base Balance
-      const savedAccountBase = localStorage.getItem('europocket_account_base');
+      const savedAccountBase = localStorage.getItem('europocket_pub_account_base');
       if (savedAccountBase !== null) {
         const parsedAccBase = parseFloat(savedAccountBase);
-        accountBaseBalance = isNaN(parsedAccBase) ? 6277.39 : parsedAccBase;
+        accountBaseBalance = isNaN(parsedAccBase) ? 0.00 : parsedAccBase;
       } else {
-        accountBaseBalance = 6277.39;
+        accountBaseBalance = 0.00;
       }
 
       document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
@@ -1145,12 +1141,12 @@
     }
 
     function saveToStorage() {
-      localStorage.setItem('europocket_expenses', JSON.stringify(expenses));
+      localStorage.setItem('europocket_pub_expenses', JSON.stringify(expenses));
     }
 
     function saveCategoriesToStorage() {
-      localStorage.setItem('europocket_categories', JSON.stringify(categories));
-      localStorage.setItem('europocket_income_categories', JSON.stringify(incomeCategories));
+      localStorage.setItem('europocket_pub_categories', JSON.stringify(categories));
+      localStorage.setItem('europocket_pub_income_categories', JSON.stringify(incomeCategories));
     }
 
     // Format Helpers
@@ -2319,7 +2315,7 @@
       const newRate = parseFloat(document.getElementById('settingExchangeRate').value);
       if (newRate > 0) {
         exchangeRate = newRate;
-        localStorage.setItem('europocket_exchange_rate', exchangeRate);
+        localStorage.setItem('europocket_pub_exchange_rate', exchangeRate);
         document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
         closeExchangeRateModal();
         renderUI();
@@ -2338,7 +2334,7 @@
       const val = parseFloat(document.getElementById('settingBudgetAmount').value);
       if (val >= 0) {
         monthlyBudget = val;
-        localStorage.setItem('europocket_budget', monthlyBudget);
+        localStorage.setItem('europocket_pub_budget', monthlyBudget);
         closeBudgetModal();
         renderUI();
       }
@@ -2347,8 +2343,8 @@
     // ==========================================
     // 👛 내 현금 주머니 & 양방향 미니 ATM (인출: 계좌➔지갑 / 입금: 지갑➔계좌)
     // ==========================================
-    cashWalletBase = parseFloat(localStorage.getItem('europocket_cash_charged_v2') ?? '30.00');
-    if (isNaN(cashWalletBase)) cashWalletBase = 30.00;
+    cashWalletBase = parseFloat(localStorage.getItem('europocket_pub_cash_base_v3') ?? '0.00');
+    if (isNaN(cashWalletBase)) cashWalletBase = 0.00;
 
     function getCashPocketStats() {
       const year = currentDate.getFullYear();
@@ -2374,13 +2370,10 @@
         .filter(item => item.payment === '현금' && item.type === 'income')
         .reduce((sum, item) => sum + Number(item.amount), 0);
 
-      // 기존 테스트 데이터(v2)와 ATM 인출 내역 간 이중 합산 방지용 1회 자동 보정(v3)
-      const savedBaseV3 = localStorage.getItem('europocket_cash_base_v3');
+      const savedBaseV3 = localStorage.getItem('europocket_pub_cash_base_v3');
       if (savedBaseV3 === null) {
-        const legacyCharged = parseFloat(localStorage.getItem('europocket_cash_charged_v2') ?? '30.00');
-        const safeLegacy = isNaN(legacyCharged) ? 30.00 : legacyCharged;
-        cashWalletBase = Number((safeLegacy - atmWithdrawTotal).toFixed(2));
-        localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+        cashWalletBase = 0;
+        localStorage.setItem('europocket_pub_cash_base_v3', 0);
       } else {
         cashWalletBase = parseFloat(savedBaseV3);
         if (isNaN(cashWalletBase)) cashWalletBase = 0;
@@ -2531,8 +2524,8 @@
       // 내역 추가 없이 현금 지출/수입/ATM인출·입금 내역을 그대로 유지하면서 목표 잔액이 되도록 기본 보유 원금을 역산
       const { atmWithdrawTotal, atmDepositTotal, cashExpenseTotal, cashIncomeTotal } = getCashPocketStats();
       cashWalletBase = Number((targetBalance - atmWithdrawTotal + atmDepositTotal - cashIncomeTotal + cashExpenseTotal).toFixed(2));
-      localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
-      localStorage.setItem('europocket_cash_charged_v2', Number((cashWalletBase + atmWithdrawTotal - atmDepositTotal).toFixed(2)));
+      localStorage.setItem('europocket_pub_cash_base_v3', cashWalletBase);
+      localStorage.setItem('europocket_pub_cash_charged_v2', Number((cashWalletBase + atmWithdrawTotal - atmDepositTotal).toFixed(2)));
       renderUI();
       closeCashPocketModal();
     }
@@ -2631,7 +2624,7 @@
       // 내역 추가 없이 [계좌 기본 잔액 + 계좌 입금 - 계좌 출금 = 목표 잔액]이 되도록 계좌 기본 잔액을 역산
       const { accountIncomeTotal, accountOutflowTotal } = getAccountStats();
       accountBaseBalance = Number((targetBalance - accountIncomeTotal + accountOutflowTotal).toFixed(2));
-      localStorage.setItem('europocket_account_base', accountBaseBalance);
+      localStorage.setItem('europocket_pub_account_base', accountBaseBalance);
       renderUI();
       renderAccountHistoryModal();
     }
@@ -2840,32 +2833,32 @@
 
           if (typeof data.exchangeRate === 'number' && data.exchangeRate > 0) {
             exchangeRate = data.exchangeRate;
-            localStorage.setItem('europocket_exchange_rate', exchangeRate);
+            localStorage.setItem('europocket_pub_exchange_rate', exchangeRate);
             document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
           }
 
           if (typeof data.accountBaseBalance === 'number' && !isNaN(data.accountBaseBalance)) {
             accountBaseBalance = data.accountBaseBalance;
-            localStorage.setItem('europocket_account_base', accountBaseBalance);
+            localStorage.setItem('europocket_pub_account_base', accountBaseBalance);
             if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0) {
               monthlyBudget = data.monthlyBudget;
-              localStorage.setItem('europocket_budget', monthlyBudget);
+              localStorage.setItem('europocket_pub_budget', monthlyBudget);
             }
           } else if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0) {
             // v1 백업 파일 호환: 기존 monthlyBudget에 저장되어 있던 계좌 원금을 accountBaseBalance로 복원
             accountBaseBalance = data.monthlyBudget;
-            localStorage.setItem('europocket_account_base', accountBaseBalance);
+            localStorage.setItem('europocket_pub_account_base', accountBaseBalance);
           }
 
           if (data.cashChargedV2 !== undefined && data.cashChargedV2 !== null) {
-            localStorage.setItem('europocket_cash_charged_v2', data.cashChargedV2);
+            localStorage.setItem('europocket_pub_cash_charged_v2', data.cashChargedV2);
           }
           if (data.cashBaseV3 !== undefined && data.cashBaseV3 !== null) {
             cashWalletBase = Number(data.cashBaseV3);
-            localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+            localStorage.setItem('europocket_pub_cash_base_v3', cashWalletBase);
           } else if (typeof data.cashWalletBase === 'number') {
             cashWalletBase = data.cashWalletBase;
-            localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+            localStorage.setItem('europocket_pub_cash_base_v3', cashWalletBase);
           }
 
           tempCategories = JSON.parse(JSON.stringify(categories));
@@ -2896,3 +2889,4 @@
 </body>
 
 </html>
+
