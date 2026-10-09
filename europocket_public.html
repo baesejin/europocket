@@ -274,7 +274,7 @@
           <span>검색 결과: <strong id="searchCount">0</strong>건 발견</span>
         </div>
         <label class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" id="searchAllMonths" checked onchange="handleSearch()"
+          <input type="checkbox" id="searchAllMonths" onchange="handleSearch()"
             class="rounded text-amber-600 focus:ring-0">
           <span class="text-[11px] text-amber-700">전체 달 포함</span>
         </label>
@@ -525,7 +525,7 @@
             <div class="pt-3 mt-1 border-t border-slate-100 text-center space-y-1">
               <div class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
                 <span>💛 EuroPocket (유로포켓)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.01.01</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.01.02</span>
               </div>
               <p class="text-[11px] text-slate-400 font-medium">
                 Designed by <span class="font-bold text-slate-600">@pocket.yield</span>
@@ -1858,8 +1858,11 @@
 
       // Extract unique matched merchant titles/keywords (e.g. user types 'r' -> shows 'Rewe', 'Rossmann')
       if (keywordBox) {
+        const poolItems = searchAll
+          ? expenses
+          : expenses.filter(item => item.date.startsWith(monthKey));
         const matchingTitles = Array.from(new Set(
-          expenses
+          poolItems
             .map(item => item.title ? item.title.trim() : '')
             .filter(t => t && t.toLowerCase().includes(queryLower) && t.toLowerCase() !== queryLower)
         )).slice(0, 5);
@@ -1913,6 +1916,8 @@
       searchInput.value = '';
       document.getElementById('clearSearchBtn').classList.add('hidden');
       document.getElementById('searchNotice').classList.add('hidden');
+      const searchAll = document.getElementById('searchAllMonths');
+      if (searchAll) searchAll.checked = false;
       const keywordBox = document.getElementById('searchKeywordSuggestions');
       if (keywordBox) {
         keywordBox.classList.add('hidden');
