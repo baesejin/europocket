@@ -1,0 +1,324 @@
+{
+  "app": "EuroPocket",
+  "version": 1,
+  "exportedAt": "2026-10-09T12:31:41.323Z",
+  "expenses": [
+    {
+      "id": 1791471480113,
+      "type": "income",
+      "date": "2026-10-08",
+      "title": "exchange",
+      "category": "inc_allow",
+      "amount": 1000,
+      "payment": "현금",
+      "memo": ""
+    },
+    {
+      "id": 1791363483685,
+      "type": "expense",
+      "date": "2026-10-06",
+      "title": "pizza",
+      "category": "food",
+      "amount": 15,
+      "payment": "현금",
+      "memo": ""
+    },
+    {
+      "id": 1791299398842,
+      "type": "atm",
+      "date": "2026-10-06",
+      "title": "ATM 인출",
+      "category": "atm_withdraw",
+      "amount": 30,
+      "payment": "계좌➔지갑",
+      "memo": ""
+    },
+    {
+      "id": 1791280408151,
+      "type": "expense",
+      "date": "2026-10-06",
+      "title": "alditalk",
+      "category": "cat_1791280374039",
+      "amount": 9.99,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791279056606,
+      "type": "expense",
+      "date": "2026-10-06",
+      "title": "CinemaxX snacks",
+      "category": "culture",
+      "amount": 23.9,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791278918846,
+      "type": "expense",
+      "date": "2026-10-06",
+      "title": "McDonald's",
+      "category": "food",
+      "amount": 24.27,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212979303,
+      "type": "expense",
+      "date": "2026-10-05",
+      "title": "Edeka",
+      "category": "mart",
+      "amount": 1.29,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212964734,
+      "type": "expense",
+      "date": "2026-10-05",
+      "title": "Thalia",
+      "category": "cat_1791212515494",
+      "amount": 52,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212837398,
+      "type": "income",
+      "date": "2026-10-02",
+      "title": "from Kate",
+      "category": "inc_allow",
+      "amount": 156,
+      "payment": "카드",
+      "memo": "Hofbräuhaus Berlin Oktoberfest 2026"
+    },
+    {
+      "id": 1791212813575,
+      "type": "income",
+      "date": "2026-10-02",
+      "title": "from Nayoon",
+      "category": "inc_allow",
+      "amount": 117,
+      "payment": "카드",
+      "memo": "Hofbräuhaus Berlin Oktoberfest 2026"
+    },
+    {
+      "id": 1791212788102,
+      "type": "expense",
+      "date": "2026-10-02",
+      "title": "Netto",
+      "category": "mart",
+      "amount": 2.29,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212770249,
+      "type": "expense",
+      "date": "2026-10-02",
+      "title": "Edeka",
+      "category": "mart",
+      "amount": 2.57,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212726622,
+      "type": "income",
+      "date": "2026-10-01",
+      "title": "from Yunseo",
+      "category": "inc_allow",
+      "amount": 39,
+      "payment": "카드",
+      "memo": "Hofbräuhaus Berlin Oktoberfest 2026"
+    },
+    {
+      "id": 1791212660661,
+      "type": "expense",
+      "date": "2026-10-01",
+      "title": "Edeka",
+      "category": "mart",
+      "amount": 0.88,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212643007,
+      "type": "expense",
+      "date": "2026-10-01",
+      "title": "Edeka",
+      "category": "mart",
+      "amount": 9.72,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212624190,
+      "type": "expense",
+      "date": "2026-10-01",
+      "title": "Rewe",
+      "category": "mart",
+      "amount": 0.34,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212605814,
+      "type": "expense",
+      "date": "2026-10-01",
+      "title": "Deutschland Ticket",
+      "category": "trans",
+      "amount": 63,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 1791212563254,
+      "type": "income",
+      "date": "2026-10-01",
+      "title": "이자 2.5%",
+      "category": "inc_fin",
+      "amount": 15.87,
+      "payment": "카드",
+      "memo": ""
+    },
+    {
+      "id": 4,
+      "date": "2026-09-28",
+      "title": "DM 드럭스토어",
+      "category": "living",
+      "amount": 15.8,
+      "payment": "카드",
+      "memo": "세탁 세제, 샴푸",
+      "type": "expense"
+    },
+    {
+      "id": 5,
+      "date": "2026-09-25",
+      "title": "학식 (Mensa)",
+      "category": "food",
+      "amount": 4.5,
+      "payment": "현금",
+      "memo": "치킨 슈니첼",
+      "type": "expense"
+    }
+  ],
+  "categories": [
+    {
+      "id": "mart",
+      "name": "마트/식료품",
+      "icon": "ph-shopping-cart",
+      "color": "bg-emerald-100 text-emerald-700"
+    },
+    {
+      "id": "food",
+      "name": "외식/식사",
+      "icon": "ph-fork-knife",
+      "color": "bg-orange-100 text-orange-700"
+    },
+    {
+      "id": "cafe",
+      "name": "카페/디저트",
+      "icon": "ph-coffee",
+      "color": "bg-amber-100 text-amber-700"
+    },
+    {
+      "id": "rent",
+      "name": "방값/고정비",
+      "icon": "ph-house",
+      "color": "bg-blue-100 text-blue-700"
+    },
+    {
+      "id": "living",
+      "name": "생필품",
+      "icon": "ph-drop",
+      "color": "bg-pink-100 text-pink-700"
+    },
+    {
+      "id": "trans",
+      "name": "교통",
+      "icon": "ph-train",
+      "color": "bg-cyan-100 text-cyan-700"
+    },
+    {
+      "id": "leisure",
+      "name": "여가/쇼핑",
+      "icon": "ph-t-shirt",
+      "color": "bg-purple-100 text-purple-700"
+    },
+    {
+      "id": "culture",
+      "name": "문화/여가",
+      "icon": "ph-film-slate",
+      "color": "bg-violet-100 text-violet-700"
+    },
+    {
+      "id": "etc",
+      "name": "여행",
+      "icon": "ph-airplane-tilt",
+      "color": "bg-sky-100 text-sky-700"
+    },
+    {
+      "id": "cat_1791212515494",
+      "name": "학업/도서",
+      "icon": "ph-book-open",
+      "color": "bg-indigo-100 text-indigo-700"
+    },
+    {
+      "id": "cat_1791280374039",
+      "name": "공과금/전기",
+      "icon": "ph-lightning",
+      "color": "bg-yellow-100 text-yellow-700"
+    }
+  ],
+  "incomeCategories": [
+    {
+      "id": "inc_sperr",
+      "name": "슈페어콘토",
+      "icon": "ph-bank",
+      "color": "bg-emerald-100 text-emerald-700"
+    },
+    {
+      "id": "inc_allow",
+      "name": "송금/용돈",
+      "icon": "ph-hand-coins",
+      "color": "bg-teal-100 text-teal-700"
+    },
+    {
+      "id": "inc_job",
+      "name": "알바/급여",
+      "icon": "ph-briefcase",
+      "color": "bg-cyan-100 text-cyan-700"
+    },
+    {
+      "id": "inc_fin",
+      "name": "금융소득",
+      "icon": "ph-trend-up",
+      "color": "bg-amber-100 text-amber-700"
+    },
+    {
+      "id": "inc_pfand",
+      "name": "중고/판트",
+      "icon": "ph-recycle",
+      "color": "bg-lime-100 text-lime-700"
+    },
+    {
+      "id": "inc_scholar",
+      "name": "장학금",
+      "icon": "ph-graduation-cap",
+      "color": "bg-sky-100 text-sky-700"
+    },
+    {
+      "id": "inc_etc",
+      "name": "기타수입",
+      "icon": "ph-dots-three",
+      "color": "bg-slate-100 text-slate-700"
+    }
+  ],
+  "exchangeRate": 1508,
+  "monthlyBudget": 6277.39,
+  "cashWalletBase": 0,
+  "cashChargedV2": 30,
+  "cashBaseV3": 0
+}
