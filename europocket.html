@@ -1,0 +1,2462 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>유로포켓 (EuroPocket) - 독일 유학생 가계부</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .dragging-row {
+      opacity: 0.45;
+      transform: scale(0.98);
+      border-color: #f59e0b !important;
+      background-color: #fffbeb !important;
+    }
+
+    .drag-over-row {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+      background-color: #fffbeb !important;
+    }
+
+    /* Option 3: Muted Nordic Palette Colors */
+    .text-palette-green {
+      color: #42A883 !important;
+    }
+
+    .text-palette-red {
+      color: #E06C75 !important;
+    }
+
+    .bg-palette-green {
+      background-color: #42A883 !important;
+    }
+
+    .bg-palette-red {
+      background-color: #E06C75 !important;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 flex justify-center h-screen overflow-hidden text-slate-800">
+
+  <!-- Mobile Container Mockup (Fixed Full Viewport Height) -->
+  <div class="w-full max-w-md bg-white h-screen shadow-xl flex flex-col relative overflow-hidden">
+
+    <!-- Top Header (Fixed) -->
+    <header class="flex-shrink-0 z-20 bg-white px-5 pt-5 pb-3 border-b border-slate-100">
+      <div class="flex items-start justify-between mb-2.5">
+        <!-- Left: Logo, Title, Subtitle, and Exchange Rate Badge underneath -->
+        <div class="flex items-start gap-2.5">
+          <div
+            class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm mt-0.5">
+            €
+          </div>
+          <div>
+            <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">유로포켓</h1>
+            <p class="text-xs text-slate-400">독일 유학생 심플 가계부</p>
+            <!-- Exchange Rate Badge moved right below subtitle -->
+            <button onclick="openExchangeRateModal()"
+              class="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 transition text-[11px] font-medium text-slate-600">
+              <span class="w-1.5 h-1.5 rounded-full bg-palette-green"></span>
+              <span>1€ = <span id="headerExchangeRate">1,500</span>원</span>
+              <i class="ph ph-pencil-simple text-[10px] text-slate-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Settings Gear Button -->
+        <button onclick="openSettingsModal()" title="설정"
+          class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center transition shadow-sm active:scale-95">
+          <i class="ph ph-gear text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Month Selector -->
+      <div class="flex items-center justify-between py-1.5">
+        <button onclick="changeMonth(-1)" title="이전 달"
+          class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-600 transition active:scale-95">
+          <i class="ph ph-caret-left text-lg"></i>
+        </button>
+        <button onclick="openMonthPickerModal()" title="클릭하여 연도/월 선택"
+          class="px-3 py-1 rounded-xl hover:bg-slate-100 active:scale-95 transition flex items-center gap-1.5 group">
+          <i class="ph ph-calendar-blank text-sm text-amber-500"></i>
+          <span id="currentMonthLabel"
+            class="text-base font-bold text-slate-800 tracking-tight group-hover:text-amber-600 transition">2026년
+            10월</span>
+          <i class="ph ph-caret-down text-xs text-slate-400 group-hover:text-amber-600 transition"></i>
+        </button>
+        <button onclick="changeMonth(1)" title="다음 달"
+          class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-600 transition active:scale-95">
+          <i class="ph ph-caret-right text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="relative mt-1">
+        <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base"></i>
+        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="상호명, 메모, 카테고리 실시간 검색 (예: Rewe, DM)"
+          class="w-full pl-10 pr-9 py-2 bg-slate-100 hover:bg-slate-200/70 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition rounded-xl text-xs outline-none text-slate-800 placeholder-slate-400" />
+        <button id="clearSearchBtn" onclick="clearSearch()"
+          class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+          <i class="ph ph-x-circle-fill text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Fixed Summary & List Title Section -->
+    <div class="flex-shrink-0 px-5 pt-3.5 pb-2 space-y-3 bg-white border-b border-slate-100">
+      <!-- Budget / Income & Expense Summary Card -->
+      <div id="summaryCard"
+        class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg shadow-slate-900/10">
+        <!-- Top Row: Expense vs Income -->
+        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-700/60">
+          <!-- Expense Column -->
+          <div>
+            <span class="text-[11px] font-medium text-palette-red tracking-wide">이번 달 총 지출</span>
+            <div class="mt-0.5">
+              <div id="monthlyTotalEur" class="text-xl font-extrabold tracking-tight text-palette-red">- € 0.00</div>
+              <div id="monthlyTotalKrw" class="text-[11px] text-slate-400 font-medium">약 0원</div>
+            </div>
+          </div>
+
+          <!-- Income Column -->
+          <div class="border-l border-slate-700/60 pl-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-medium text-palette-green tracking-wide">이번 달 총 수입</span>
+              <button onclick="openBudgetModal()"
+                class="text-[10px] text-amber-400 hover:text-amber-300 underline underline-offset-2">
+                예산 설정
+              </button>
+            </div>
+            <div class="mt-0.5">
+              <div id="monthlyIncomeEur" class="text-xl font-extrabold tracking-tight text-palette-green">+ € 0.00</div>
+              <div id="monthlyIncomeKrw" class="text-[11px] text-slate-400 font-medium">약 0원</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget Gauge (Account Balance - Clickable to view Account In/Out History) -->
+        <div onclick="openAccountHistoryModal()"
+          title="클릭하여 계좌 입출금 내역 보기"
+          class="mt-2.5 p-2 -mx-2 rounded-xl cursor-pointer group hover:bg-white/5 transition">
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <span class="text-slate-300 flex items-center gap-1">
+              <span>🏦 월 예산(계좌) 잔여:</span>
+            </span>
+            <span class="flex items-center gap-1">
+              <span id="budgetRemainingLabel"
+                class="font-extrabold text-palette-green group-hover:underline underline-offset-2">€ 992.00 남음</span>
+              <i class="ph ph-caret-right text-[11px] text-slate-400 group-hover:text-white transition"></i>
+            </span>
+          </div>
+          <div class="w-full h-2 bg-slate-700/60 rounded-full overflow-hidden">
+            <div id="budgetProgressBar" class="h-full bg-palette-green rounded-full transition-all duration-500"
+              style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Idea 1: Cash Pocket (내 현금 주머니 & 미니 ATM 충전소) -->
+        <div onclick="openCashPocketModal()"
+          class="mt-3 pt-2.5 border-t border-slate-700/60 flex items-center justify-between cursor-pointer group hover:opacity-95 transition">
+          <div class="flex items-center gap-2">
+            <span class="text-base group-hover:scale-110 transition-transform">👛</span>
+            <span class="text-xs font-semibold text-slate-200">내 현금 주머니</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="cashPocketBalanceEur" class="text-sm font-extrabold text-amber-300">€ 0.00</span>
+            <span
+              class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 group-hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 font-bold flex items-center gap-1 transition">
+              <i class="ph ph-plus-circle"></i> ATM 인출/충전
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Mode Notice -->
+      <div id="searchNotice"
+        class="hidden flex items-center justify-between bg-amber-50 border border-amber-200/70 px-3.5 py-2 rounded-xl text-xs text-amber-800">
+        <div class="flex items-center gap-1.5">
+          <i class="ph ph-funnel text-amber-600 text-sm"></i>
+          <span>검색 결과: <strong id="searchCount">0</strong>건 발견</span>
+        </div>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" id="searchAllMonths" onchange="handleSearch()"
+            class="rounded text-amber-600 focus:ring-0">
+          <span class="text-[11px] text-amber-700">전체 달 포함</span>
+        </label>
+      </div>
+
+      <!-- Expense/Income List Section Header (Fixed) -->
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-500 px-1 pt-0.5">
+        <span>입출금 내역</span>
+        <span id="itemCountLabel">총 0건</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Expense List Area -->
+    <main class="flex-1 overflow-y-auto px-5 pt-3 pb-24 custom-scrollbar">
+      <!-- List Container -->
+      <div id="expenseList" class="space-y-3">
+        <!-- Dynamic Items inserted here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-12 text-center">
+        <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+          <i class="ph ph-receipt text-2xl"></i>
+        </div>
+        <p class="text-xs font-medium text-slate-500" id="emptyStateText">등록된 내역이 없습니다.</p>
+        <p class="text-[11px] text-slate-400 mt-1">하단의 + 버튼을 눌러 지출이나 수입을 추가해 보세요!</p>
+      </div>
+    </main>
+
+    <!-- Floating Action Button (Add Expense / Income) -->
+    <div class="fixed bottom-6 max-w-md w-full px-5 flex justify-end pointer-events-none z-30">
+      <button onclick="openAddModal()"
+        class="pointer-events-auto w-14 h-14 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 transition-transform active:scale-95">
+        <i class="ph ph-plus text-2xl font-bold"></i>
+      </button>
+    </div>
+
+    <!-- Modal: Add / Edit Transaction (Expense & Income) -->
+    <div id="addModal"
+      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity">
+      <div
+        class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <h2 id="modalTitle" class="text-base font-bold text-slate-900">내역 입력</h2>
+            <span id="modalModeBadge"
+              class="hidden text-[10px] px-2 py-0.5 rounded-md font-semibold bg-amber-100 text-amber-800">수정 모드</span>
+          </div>
+          <button onclick="closeAddModal()"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+            <i class="ph ph-x text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Transaction Type Toggle: 지출 (-) vs 수입 (+) -->
+        <div id="txTypeTabsWrap" class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-2xl text-xs font-bold">
+          <button type="button" id="txTypeExpenseBtn" onclick="setTransactionType('expense')"
+            class="py-2 rounded-xl bg-white shadow-sm text-palette-red flex items-center justify-center gap-1.5 transition">
+            <i class="ph ph-minus-circle text-sm"></i>
+            <span>지출 (Expense)</span>
+          </button>
+          <button type="button" id="txTypeIncomeBtn" onclick="setTransactionType('income')"
+            class="py-2 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition">
+            <i class="ph ph-plus-circle text-sm"></i>
+            <span>수입 (Income)</span>
+          </button>
+        </div>
+
+        <!-- Idea 1+2: Info Banner shown when editing an ATM Withdrawal Card -->
+        <div id="atmInfoBanner"
+          class="hidden p-3 rounded-2xl bg-sky-50 border border-sky-200 text-sky-900 text-[11px] flex items-center gap-2.5">
+          <span class="text-xl flex-shrink-0">🏧</span>
+          <div class="leading-relaxed">
+            <span class="font-extrabold text-sky-800 block">미니 ATM 현금 인출 기록 (계좌 ➔ 현금 주머니)</span>
+            금액을 수정하거나 삭제하면 상단 <b>내 현금 주머니</b> 잔액에 즉시 반영되며, 월 총 지출에는 합산되지 않습니다.
+          </div>
+        </div>
+
+        <!-- Date & Payment Method -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1">날짜</label>
+            <input type="date" id="inputDate"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 focus:bg-white" />
+          </div>
+          <div>
+            <label id="paymentMethodLabel" class="block text-xs font-medium text-slate-500 mb-1">결제 수단</label>
+            <div id="paymentToggleGroup" class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-medium">
+              <button type="button" id="payCardBtn" onclick="setPaymentMethod('카드')"
+                class="py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition">카드/계좌</button>
+              <button type="button" id="payCashBtn" onclick="setPaymentMethod('현금')"
+                class="py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">현금</button>
+            </div>
+            <div id="atmTransferBadge"
+              class="hidden py-2 px-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 text-[11px] font-bold text-center">
+              🏦 계좌 ➔ 👛 현금 주머니
+            </div>
+          </div>
+        </div>
+
+        <!-- Amount (EUR) -->
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">금액 (€ 유로)</label>
+          <div class="relative">
+            <span id="amountPrefixSign"
+              class="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">€</span>
+            <input type="number" step="0.01" id="inputAmount" oninput="previewKrwConversion()" placeholder="0.00"
+              class="w-full pl-9 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-xl text-lg font-bold outline-none focus:border-amber-500 focus:bg-white text-slate-900" />
+            <span id="previewKrw"
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">약 0원</span>
+          </div>
+        </div>
+
+        <!-- Title / Merchant -->
+        <div>
+          <label id="titleInputLabel" class="block text-xs font-medium text-slate-500 mb-1">상호명 또는 항목 (검색 키워드)</label>
+          <input type="text" id="inputTitle" placeholder="예: Rewe 마트 장보기, DM 세제, WG 월세"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 focus:bg-white text-slate-800" />
+        </div>
+
+        <!-- Category -->
+        <div id="categorySectionWrap">
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center gap-1.5">
+              <label id="categorySectionLabel" class="block text-xs font-medium text-slate-500">지출 카테고리</label>
+              <span class="text-[10px] text-slate-400">(끌어서 순서 변경 가능)</span>
+            </div>
+            <button type="button" onclick="openSettingsModal(selectedTxType, 'categoryOnly');"
+              class="text-[11px] text-amber-600 hover:underline flex items-center gap-0.5">
+              <i class="ph ph-gear"></i> 편집
+            </button>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-xs" id="categoryChips">
+            <!-- Dynamic Category Chips -->
+          </div>
+        </div>
+
+        <!-- Memo -->
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">상세 메모 (선택)</label>
+          <input type="text" id="inputMemo" placeholder="상세 품목, 입금 출처 등 검색에 필요한 내용"
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-amber-500 focus:bg-white text-slate-800" />
+        </div>
+
+        <!-- Submit & Delete Action Buttons -->
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" id="modalDeleteBtn" onclick="deleteCurrentEditingExpense()"
+            class="hidden px-4 py-3.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition flex items-center justify-center gap-1.5 text-xs">
+            <i class="ph ph-trash text-base"></i>
+            <span>삭제</span>
+          </button>
+          <button type="button" id="modalSubmitBtn" onclick="saveExpense()"
+            class="flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-500/20 transition active:scale-[0.99] text-xs">
+            저장하기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Master Settings (Gear Icon) & Category Edit -->
+    <div id="settingsModal"
+      class="hidden fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div
+        class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl space-y-3 max-h-[90vh] flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center pb-2.5 border-b border-slate-100 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <i id="settingsModalHeaderIcon" class="ph ph-gear text-xl text-amber-500"></i>
+            <h2 id="settingsModalTitle" class="text-base font-bold text-slate-900">설정 (Settings)</h2>
+          </div>
+          <button onclick="closeSettingsModal()"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+            <i class="ph ph-x text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Settings Body -->
+        <div class="overflow-y-auto pr-1 flex-1 custom-scrollbar">
+
+          <!-- Section 1 (Top in Full Settings, Hidden in Category Edit): General / Quick Settings -->
+          <div id="settingsGeneralSection" class="space-y-3 pb-4 mb-4 border-b border-slate-100">
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">기본 환경 설정</h3>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <button type="button" onclick="closeSettingsModal(); openExchangeRateModal();"
+                class="p-3 rounded-xl border border-slate-200 hover:border-amber-400 bg-slate-50/60 text-left transition">
+                <div class="text-[11px] text-slate-400">적용 환율</div>
+                <div class="text-xs font-bold text-slate-800 mt-0.5 flex items-center justify-between">
+                  <span>1€ = <span id="settingsRatePreview">1,500</span>원</span>
+                  <i class="ph ph-caret-right text-slate-400"></i>
+                </div>
+              </button>
+
+              <button type="button" onclick="closeSettingsModal(); openBudgetModal();"
+                class="p-3 rounded-xl border border-slate-200 hover:border-amber-400 bg-slate-50/60 text-left transition">
+                <div class="text-[11px] text-slate-400">월 예산 (슈페어콘토)</div>
+                <div class="text-xs font-bold text-slate-800 mt-0.5 flex items-center justify-between">
+                  <span>€ <span id="settingsBudgetPreview">992</span></span>
+                  <i class="ph ph-caret-right text-slate-400"></i>
+                </div>
+              </button>
+            </div>
+
+            <!-- Cross-Device Data Backup & Restore (Laptop <-> Desktop) -->
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                  <i class="ph ph-arrows-left-right text-amber-600 text-sm"></i>
+                  <span>노트북 ↔ 데스크탑 데이터 이동 (백업/복원)</span>
+                </span>
+              </div>
+              <p class="text-[10px] text-slate-400 leading-relaxed">
+                입출금 내역·카테고리·현금잔액을 파일 하나로 저장해 다른 컴퓨터에서 그대로 불러올 수 있습니다.
+              </p>
+              <div class="grid grid-cols-2 gap-2 pt-0.5">
+                <button type="button" onclick="exportEuroPocketData()"
+                  class="py-2 px-2.5 rounded-xl bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:text-amber-800 text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition active:scale-95">
+                  <i class="ph ph-download-simple text-sm text-amber-600"></i>
+                  <span>데이터 백업 저장</span>
+                </button>
+                <button type="button" onclick="triggerImportEuroPocketData()"
+                  class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition active:scale-95">
+                  <i class="ph ph-upload-simple text-sm text-amber-300"></i>
+                  <span>데이터 불러오기</span>
+                </button>
+              </div>
+              <input type="file" id="importDataFileInput" accept=".json,application/json" class="hidden"
+                onchange="importEuroPocketData(event)" />
+            </div>
+          </div>
+
+          <!-- Section 2: Category Management -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">카테고리 관리</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">왼쪽 손잡이(⠿)를 끌어서 순서를 바꾸거나 아이콘·이름을 수정하세요.</p>
+              </div>
+              <button type="button" onclick="resetCategoriesToDefault()"
+                class="text-[11px] text-slate-400 hover:text-slate-600 underline">
+                기본값 복원
+              </button>
+            </div>
+
+            <!-- Category Type Switch inside Settings -->
+            <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <button type="button" id="settingsTabExpenseBtn" onclick="switchSettingsCategoryTab('expense')"
+                class="py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition">
+                지출 카테고리
+              </button>
+              <button type="button" id="settingsTabIncomeBtn" onclick="switchSettingsCategoryTab('income')"
+                class="py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">
+                수입 카테고리
+              </button>
+            </div>
+
+            <!-- Category Edit List -->
+            <div id="settingsCategoryList" class="space-y-2">
+              <!-- Populated dynamically -->
+            </div>
+
+            <!-- Add New Category Button -->
+            <button type="button" onclick="addNewCategoryRow()"
+              class="w-full py-2.5 border border-dashed border-slate-300 hover:border-amber-500 rounded-xl text-xs font-semibold text-slate-500 hover:text-amber-600 flex items-center justify-center gap-1.5 transition bg-slate-50/50 hover:bg-amber-50/30">
+              <i class="ph ph-plus-circle text-base"></i>
+              <span>새 카테고리 추가</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="pt-3 border-t border-slate-100 flex-shrink-0 flex gap-2">
+          <button type="button" onclick="closeSettingsModal()"
+            class="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+            닫기
+          </button>
+          <button type="button" onclick="saveSettingsCategories()"
+            class="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition">
+            변경사항 저장
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Exchange Rate Settings -->
+    <div id="exchangeModal"
+      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
+        <h3 class="text-base font-bold text-slate-900">환율 설정</h3>
+        <p class="text-xs text-slate-500">1유로당 원화 환산 기준 금액을 입력해 주세요.</p>
+        <div class="relative">
+          <input type="number" id="settingExchangeRate"
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-amber-500" />
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">원 / 1€</span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="closeExchangeRateModal()"
+            class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold">취소</button>
+          <button onclick="saveExchangeRate()"
+            class="flex-1 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold">적용</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Monthly Budget Settings -->
+    <div id="budgetModal"
+      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
+        <h3 class="text-base font-bold text-slate-900">월 예산(슈페어콘토) 설정</h3>
+        <p class="text-xs text-slate-500">한 달 생활비 한도(슈페어콘토 월 출금액 등)를 유로로 입력해 주세요.</p>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">€</span>
+          <input type="number" id="settingBudgetAmount"
+            class="w-full pl-8 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-amber-500" />
+        </div>
+        <div class="flex gap-2">
+          <button onclick="closeBudgetModal()"
+            class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold">취소</button>
+          <button onclick="saveBudget()"
+            class="flex-1 py-2 rounded-xl bg-amber-500 text-white text-xs font-semibold">저장</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Year & Month Picker -->
+    <div id="monthPickerModal"
+      class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-4">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+              <i class="ph ph-calendar text-base"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900">연도 및 월 이동</h3>
+          </div>
+          <button onclick="closeMonthPickerModal()"
+            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+            <i class="ph ph-x text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Year Selector Row -->
+        <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-2xl p-1.5">
+          <button type="button" onclick="changePickerYear(-1)"
+            class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center shadow-sm transition active:scale-95">
+            <i class="ph ph-caret-left text-base"></i>
+          </button>
+          <div class="flex items-center gap-1">
+            <input type="number" id="pickerYearInput" min="1000" max="9999" oninput="onPickerYearInput(this.value)"
+              class="w-20 text-center bg-transparent text-base font-extrabold text-slate-900 outline-none focus:bg-white focus:ring-2 focus:ring-amber-400 rounded-lg py-0.5" />
+            <span class="text-sm font-bold text-slate-600">년</span>
+          </div>
+          <button type="button" onclick="changePickerYear(1)"
+            class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-700 flex items-center justify-center shadow-sm transition active:scale-95">
+            <i class="ph ph-caret-right text-base"></i>
+          </button>
+        </div>
+
+        <!-- 12 Months Grid -->
+        <div id="monthPickerGrid" class="grid grid-cols-4 gap-2">
+          <!-- Dynamically populated by JS (1월 ~ 12월) -->
+        </div>
+
+        <!-- Legend & Quick Actions -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button type="button" onclick="jumpToTodayMonth()"
+            class="flex-1 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i class="ph ph-arrow-counter-clockwise text-sm"></i>
+            <span>이번 달(오늘)로 이동</span>
+          </button>
+          <button type="button" onclick="closeMonthPickerModal()"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Category Icon Preset Picker (24 Fixed Icon + Color Sets) -->
+    <div id="iconPickerModal"
+      class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-shrink-0">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">카테고리 이미지 선택</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5">
+              <span id="iconPickerTargetName" class="font-bold text-amber-600">카테고리</span>에 사용할 이미지를 선택하세요.
+            </p>
+          </div>
+          <button type="button" onclick="closeIconPickerModal()"
+            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+            <i class="ph ph-x text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Presets Grid -->
+        <div class="overflow-y-auto pr-1 space-y-4 flex-1 custom-scrollbar">
+          <!-- Group 1: Income (8) -->
+          <div id="iconPickerFinanceSection">
+            <div class="text-[11px] font-bold text-slate-500 mb-2 flex items-center gap-1">
+              <i class="ph ph-trend-up text-emerald-600"></i>
+              <span>수입</span>
+            </div>
+            <div id="iconPickerFinanceGrid" class="grid grid-cols-4 gap-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Group 2: Expense (16) -->
+          <div id="iconPickerLivingSection">
+            <div class="text-[11px] font-bold text-slate-500 mb-2 flex items-center gap-1">
+              <i class="ph ph-shopping-cart text-amber-600"></i>
+              <span>지출</span>
+            </div>
+            <div id="iconPickerLivingGrid" class="grid grid-cols-4 gap-2">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-2 border-t border-slate-100 flex-shrink-0">
+          <button type="button" onclick="closeIconPickerModal()"
+            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cash Pocket & Mini ATM Modal (Idea 1) -->
+    <div id="cashPocketModal"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[65] hidden flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 animate-slide-up">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
+              👛
+            </span>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900">내 현금 주머니</h3>
+              <p class="text-[11px] text-slate-400">독일 현금(Bargeld) 인출 및 잔액 관리</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeCashPocketModal()"
+            class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+            <i class="ph ph-x text-base"></i>
+          </button>
+        </div>
+
+        <!-- Current Cash Balance Card -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5 shadow-md">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-medium">현재 지갑 속 현금 잔액</span>
+            <span id="cashModalKrwPreview" class="text-[11px] text-slate-400">약 0원</span>
+          </div>
+          <div id="cashModalCurrentBalanceEur" class="text-2xl font-extrabold text-amber-300 tracking-tight">
+            € 0.00
+          </div>
+          <div class="pt-2 border-t border-white/10 grid grid-cols-3 gap-2 text-[11px]">
+            <div>
+              <span class="text-slate-400 block">총 충전 원금</span>
+              <span id="cashModalBaseEur" class="font-bold text-slate-200">€ 0.00</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">이번 달 현금수입</span>
+              <span id="cashModalIncomeEur" class="font-bold text-emerald-400">+ € 0.00</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">이번 달 현금지출</span>
+              <span id="cashModalSpentEur" class="font-bold text-rose-400">- € 0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini ATM One-Touch Euro Banknote Charger -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-extrabold text-slate-700 flex items-center gap-1">
+              <span>🏧 미니 ATM 원터치 지폐 충전소</span>
+            </label>
+            <button type="button" onclick="clearAtmStaging()"
+              class="text-[11px] text-slate-400 hover:text-slate-600 underline">초기화</button>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            유로 지폐를 터치해 충전하면 현금 주머니가 채워지고, 일일 내역에도 <b class="text-sky-600">🏧 ATM 현금 인출</b> 카드가 함께 기록됩니다.
+          </p>
+
+          <!-- 4 Euro Banknote Buttons -->
+          <div class="grid grid-cols-4 gap-2 pt-0.5">
+            <button type="button" onclick="stageAtmNote(10)"
+              class="py-2.5 px-1 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-extrabold text-xs flex flex-col items-center gap-0.5 shadow-2xs active:scale-95 transition">
+              <span class="text-[10px] opacity-75">💶 10유로</span>
+              <span>+ €10</span>
+            </button>
+            <button type="button" onclick="stageAtmNote(20)"
+              class="py-2.5 px-1 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-sky-700 font-extrabold text-xs flex flex-col items-center gap-0.5 shadow-2xs active:scale-95 transition">
+              <span class="text-[10px] opacity-75">💶 20유로</span>
+              <span>+ €20</span>
+            </button>
+            <button type="button" onclick="stageAtmNote(50)"
+              class="py-2.5 px-1 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs flex flex-col items-center gap-0.5 shadow-2xs active:scale-95 transition">
+              <span class="text-[10px] opacity-75">💶 50유로</span>
+              <span>+ €50</span>
+            </button>
+            <button type="button" onclick="stageAtmNote(100)"
+              class="py-2.5 px-1 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs flex flex-col items-center gap-0.5 shadow-2xs active:scale-95 transition">
+              <span class="text-[10px] opacity-75">💶 100유로</span>
+              <span>+ €100</span>
+            </button>
+          </div>
+
+          <!-- Staged ATM Amount Action Bar -->
+          <div class="flex items-center gap-2 pt-1">
+            <div class="relative flex-1">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">+ €</span>
+              <input type="number" step="0.01" id="atmStageInput" value="0"
+                class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none focus:border-amber-500">
+            </div>
+            <button type="button" onclick="applyAtmTopUp()"
+              class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-xl shadow-sm transition active:scale-95 whitespace-nowrap">
+              🏧 주머니에 충전
+            </button>
+          </div>
+        </div>
+
+        <!-- Direct Current Cash Balance Adjustment -->
+        <div class="pt-3 border-t border-slate-100 space-y-1.5">
+          <label class="block text-[11px] font-bold text-slate-500">
+            현재 지갑 속 현금 잔액 직접 맞추기 (€, 내역 추가 없음)
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="number" step="0.01" id="directCashBalanceInput" placeholder="예: 30.00"
+              class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-400">
+            <button type="button" onclick="saveDirectCashBalance()"
+              class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition whitespace-nowrap">
+              잔액 변경
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            * 입력 순서에 상관없이 <b>[총 충전/인출 원금 + 현금 수입 내역 - 현금 지출 내역]</b>이 최우선으로 계산되어 메인 보드에 반영됩니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account (Budget) In/Out History Modal (Read-Only) -->
+    <div id="accountHistoryModal"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[65] hidden flex items-center justify-center p-4">
+      <div
+        class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl flex flex-col max-h-[85vh] animate-slide-up">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+              🏦
+            </span>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 class="text-sm font-extrabold text-slate-900">계좌 입출금 내역</h3>
+                <span
+                  class="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-slate-100 text-slate-500 flex items-center gap-0.5">
+                  <i class="ph ph-lock-key"></i> 조회 전용
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400">계좌에서 나가고 들어온 내역 (최신순 · 수정 불가)</p>
+            </div>
+          </div>
+          <button type="button" onclick="closeAccountHistoryModal()"
+            class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
+            <i class="ph ph-x text-base"></i>
+          </button>
+        </div>
+
+        <!-- Account Balance Summary Card -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5 shadow-md mt-3 flex-shrink-0">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-medium">현재 계좌(예산) 잔여 금액</span>
+            <span id="accountModalRemainingKrw" class="text-[11px] text-slate-400">약 0원</span>
+          </div>
+          <div id="accountModalRemainingEur" class="text-2xl font-extrabold text-palette-green tracking-tight">
+            € 0.00
+          </div>
+          <div class="pt-2 border-t border-white/10 grid grid-cols-3 gap-2 text-[11px]">
+            <div>
+              <span class="text-slate-400 block">설정 예산(원금)</span>
+              <span id="accountModalBudgetBaseEur" class="font-bold text-slate-200">€ 0.00</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">계좌 입금(수입)</span>
+              <span id="accountModalIncomeEur" class="font-bold text-emerald-400">+ € 0.00</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">계좌 출금(카드+인출)</span>
+              <span id="accountModalOutflowEur" class="font-bold text-rose-400">- € 0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Count & Filter Info -->
+        <div class="flex items-center justify-between pt-3 pb-1.5 px-1 flex-shrink-0">
+          <span class="text-[11px] font-bold text-slate-500">이번 달 계좌 변동 내역 (최신순)</span>
+          <span id="accountModalCountLabel" class="text-[11px] font-bold text-slate-400">총 0건</span>
+        </div>
+
+        <!-- Scrollable Read-Only Account Transaction List -->
+        <div id="accountHistoryList" class="flex-1 overflow-y-auto space-y-2 pr-0.5 py-1">
+          <!-- Populated dynamically via JS (Read-Only) -->
+        </div>
+
+        <!-- Footer -->
+        <div class="pt-3 border-t border-slate-100 mt-2 flex-shrink-0">
+          <button type="button" onclick="closeAccountHistoryModal()"
+            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Default Expense Categories
+    const DEFAULT_CATEGORIES = [
+      { id: 'mart', name: '마트/식료품', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-700' },
+      { id: 'food', name: '외식/식사', icon: 'ph-fork-knife', color: 'bg-orange-100 text-orange-700' },
+      { id: 'cafe', name: '카페/디저트', icon: 'ph-coffee', color: 'bg-amber-100 text-amber-700' },
+      { id: 'rent', name: '방값/고정비', icon: 'ph-house', color: 'bg-blue-100 text-blue-700' },
+      { id: 'living', name: '생필품', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
+      { id: 'trans', name: '교통', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
+      { id: 'leisure', name: '여가/쇼핑', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
+      { id: 'culture', name: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' },
+      { id: 'etc', name: '기타지출', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' },
+    ];
+
+    // Default Income Categories (including 금융소득)
+    const DEFAULT_INCOME_CATEGORIES = [
+      { id: 'inc_sperr', name: '슈페어콘토', icon: 'ph-bank', color: 'bg-emerald-100 text-emerald-700' },
+      { id: 'inc_allow', name: '송금/용돈', icon: 'ph-hand-coins', color: 'bg-teal-100 text-teal-700' },
+      { id: 'inc_job', name: '알바/급여', icon: 'ph-briefcase', color: 'bg-cyan-100 text-cyan-700' },
+      { id: 'inc_fin', name: '금융소득', icon: 'ph-trend-up', color: 'bg-amber-100 text-amber-700' },
+      { id: 'inc_pfand', name: '중고/판트', icon: 'ph-recycle', color: 'bg-lime-100 text-lime-700' },
+      { id: 'inc_scholar', name: '장학금', icon: 'ph-graduation-cap', color: 'bg-sky-100 text-sky-700' },
+      { id: 'inc_etc', name: '기타수입', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' },
+    ];
+
+    // Fixed Category Icon & Color Presets
+    const ICON_PRESETS = [
+      // 수입 전용 이미지 세트
+      { id: 1, group: 'finance', label: '슈페어/은행', icon: 'ph-bank', color: 'bg-emerald-100 text-emerald-700' },
+      { id: 2, group: 'finance', label: '금융(투자)', icon: 'ph-trend-up', color: 'bg-amber-100 text-amber-700' },
+      { id: 3, group: 'finance', label: '금융(이자)', icon: 'ph-coins', color: 'bg-yellow-100 text-yellow-700' },
+      { id: 4, group: 'finance', label: '저축/예금', icon: 'ph-piggy-bank', color: 'bg-pink-100 text-pink-700' },
+      { id: 5, group: 'finance', label: '송금/용돈', icon: 'ph-hand-coins', color: 'bg-teal-100 text-teal-700' },
+      { id: 6, group: 'finance', label: '알바/급여', icon: 'ph-briefcase', color: 'bg-cyan-100 text-cyan-700' },
+      { id: 7, group: 'finance', label: '중고/판트', icon: 'ph-recycle', color: 'bg-lime-100 text-lime-700' },
+      { id: 8, group: 'finance', label: '장학금', icon: 'ph-graduation-cap', color: 'bg-sky-100 text-sky-700' },
+      { id: 26, group: 'finance', label: '기타수입', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' },
+
+      // 지출 전용 이미지 세트 (문화/여가, 기타지출 포함)
+      { id: 9, group: 'living', label: '마트/식료품', icon: 'ph-shopping-cart', color: 'bg-emerald-100 text-emerald-700' },
+      { id: 10, group: 'living', label: '외식/식사', icon: 'ph-fork-knife', color: 'bg-orange-100 text-orange-700' },
+      { id: 11, group: 'living', label: '카페/베이커리', icon: 'ph-coffee', color: 'bg-amber-100 text-amber-700' },
+      { id: 12, group: 'living', label: '술자리/모임', icon: 'ph-beer-bottle', color: 'bg-yellow-100 text-yellow-700' },
+      { id: 13, group: 'living', label: '방값/고정비', icon: 'ph-house', color: 'bg-blue-100 text-blue-700' },
+      { id: 14, group: 'living', label: '공과금/전기', icon: 'ph-lightning', color: 'bg-yellow-100 text-yellow-700' },
+      { id: 15, group: 'living', label: '생필품/DM', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
+      { id: 16, group: 'living', label: '교통/기차', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
+      { id: 17, group: 'living', label: '통신/구독', icon: 'ph-device-mobile', color: 'bg-teal-100 text-teal-700' },
+      { id: 18, group: 'living', label: '의류/패션', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
+      { id: 25, group: 'living', label: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' },
+      { id: 19, group: 'living', label: '학업/도서', icon: 'ph-book-open', color: 'bg-indigo-100 text-indigo-700' },
+      { id: 20, group: 'living', label: '의료/보험', icon: 'ph-first-aid', color: 'bg-rose-100 text-rose-700' },
+      { id: 21, group: 'living', label: '운동/헬스', icon: 'ph-barbell', color: 'bg-orange-100 text-orange-700' },
+      { id: 22, group: 'living', label: '여행/항공', icon: 'ph-airplane-tilt', color: 'bg-sky-100 text-sky-700' },
+      { id: 23, group: 'living', label: '선물/경조사', icon: 'ph-gift', color: 'bg-fuchsia-100 text-fuchsia-700' },
+      { id: 24, group: 'living', label: '기타지출', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' },
+    ];
+
+    // State
+    let categories = [];
+    let incomeCategories = [];
+    let tempCategories = [];
+    let tempIncomeCategories = [];
+    let settingsActiveTab = 'expense'; // 'expense' | 'income'
+
+    let currentDate = new Date();
+    let exchangeRate = 1500;
+    let monthlyBudget = 992.00;
+    let cashWalletBase = 50.00; // 내 현금 주머니 기준/충전 누적액 (Idea 1)
+    let selectedTxType = 'expense'; // 'expense' | 'income'
+    let selectedCategory = 'mart';
+    let selectedPayment = '카드';
+    let editingExpenseId = null;
+
+    // Sample initial data
+    const INITIAL_DATA = [
+      { id: 10, type: 'income', date: '2026-10-01', title: '10월 슈페어콘토 입금', category: 'inc_sperr', amount: 992.00, payment: '카드', memo: 'Expatrio 월 정기 입금' },
+      { id: 1, type: 'expense', date: '2026-10-01', title: 'WG 월세 (Miete)', category: 'rent', amount: 450.00, payment: '카드', memo: '10월 기숙사 방값 송금' },
+      { id: 2, type: 'expense', date: '2026-10-01', title: 'TK 건강보험료', category: 'rent', amount: 125.00, payment: '카드', memo: '자동이체' },
+      { id: 3, type: 'expense', date: '2026-10-01', title: 'Rewe 장보기', category: 'mart', amount: 24.30, payment: '카드', memo: '우유, 계란, 파스타면, 사과' },
+      { id: 4, type: 'expense', date: '2026-09-28', title: 'DM 드럭스토어', category: 'living', amount: 15.80, payment: '카드', memo: '세탁 세제, 샴푸' },
+      { id: 5, type: 'expense', date: '2026-09-25', title: '학식 (Mensa)', category: 'food', amount: 4.50, payment: '현금', memo: '치킨 슈니첼' },
+    ];
+
+    let expenses = [];
+
+    // Load from LocalStorage
+    function initData() {
+      // 1. Load Expense Categories
+      const savedCats = localStorage.getItem('europocket_categories');
+      if (savedCats) {
+        try {
+          const parsed = JSON.parse(savedCats);
+          categories = (Array.isArray(parsed) && parsed.length > 0)
+            ? parsed
+            : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        } catch (e) {
+          categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        }
+      } else {
+        categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      }
+
+      // Ensure '문화/여가' (ph-film-slate) is present and rename '기타'/'기타(공통)' to '기타지출'
+      categories.forEach(c => {
+        if (c.name === '기타' || c.name === '기타(공통)') {
+          c.name = '기타지출';
+        }
+      });
+      const existingCulture = categories.find(c => c.id === 'culture' || (c.name && c.name.includes('문화')));
+      if (existingCulture) {
+        if (existingCulture.icon !== 'ph-film-slate') {
+          existingCulture.icon = 'ph-film-slate';
+          existingCulture.color = 'bg-violet-100 text-violet-700';
+        }
+      } else {
+        const etcIdx = categories.findIndex(c => c.id === 'etc' || c.name === '기타지출');
+        const newCultureCat = { id: 'culture', name: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' };
+        if (etcIdx !== -1) {
+          categories.splice(etcIdx, 0, newCultureCat);
+        } else {
+          categories.push(newCultureCat);
+        }
+      }
+
+      // 2. Load Income Categories
+      const savedIncCats = localStorage.getItem('europocket_income_categories');
+      if (savedIncCats) {
+        try {
+          const parsedInc = JSON.parse(savedIncCats);
+          incomeCategories = (Array.isArray(parsedInc) && parsedInc.length > 0)
+            ? parsedInc
+            : JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+        } catch (e) {
+          incomeCategories = JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+        }
+      } else {
+        incomeCategories = JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+      }
+
+      // Ensure '금융소득' (ph-trend-up) is present in Income Categories
+      const existingFin = incomeCategories.find(c => c.id === 'inc_fin' || (c.name && c.name.includes('금융')));
+      if (existingFin) {
+        if (existingFin.icon !== 'ph-trend-up' && existingFin.icon !== 'ph-coins') {
+          existingFin.icon = 'ph-trend-up';
+          existingFin.color = 'bg-amber-100 text-amber-700';
+        }
+      } else {
+        const incEtcIdx = incomeCategories.findIndex(c => c.id === 'inc_etc' || c.name === '기타수입');
+        const newFinCat = { id: 'inc_fin', name: '금융소득', icon: 'ph-trend-up', color: 'bg-amber-100 text-amber-700' };
+        if (incEtcIdx !== -1) {
+          incomeCategories.splice(incEtcIdx, 0, newFinCat);
+        } else {
+          incomeCategories.push(newFinCat);
+        }
+      }
+
+      // Save both category lists after both have been loaded & validated
+      saveCategoriesToStorage();
+
+      // Load Transactions
+      const savedExpenses = localStorage.getItem('europocket_expenses');
+      if (savedExpenses) {
+        try {
+          expenses = JSON.parse(savedExpenses).map(item => ({
+            ...item,
+            type: item.type || 'expense'
+          }));
+        } catch (e) {
+          expenses = INITIAL_DATA;
+        }
+      } else {
+        expenses = INITIAL_DATA;
+        saveToStorage();
+      }
+
+      // Load Exchange Rate
+      const savedRate = localStorage.getItem('europocket_exchange_rate');
+      if (savedRate) {
+        exchangeRate = parseFloat(savedRate) || 1500;
+      } else {
+        exchangeRate = 1500;
+      }
+
+      // Load Budget
+      const savedBudget = localStorage.getItem('europocket_budget');
+      if (savedBudget) monthlyBudget = parseFloat(savedBudget) || 992.00;
+
+      document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
+      renderCategoryChips();
+      renderUI();
+    }
+
+    function saveToStorage() {
+      localStorage.setItem('europocket_expenses', JSON.stringify(expenses));
+    }
+
+    function saveCategoriesToStorage() {
+      localStorage.setItem('europocket_categories', JSON.stringify(categories));
+      localStorage.setItem('europocket_income_categories', JSON.stringify(incomeCategories));
+    }
+
+    // Format Helpers
+    function formatEur(amount) {
+      return '€ ' + Number(amount).toFixed(2);
+    }
+
+    function formatKrw(amountEur) {
+      const krw = Math.round(Number(amountEur) * exchangeRate);
+      return '약 ' + krw.toLocaleString() + '원';
+    }
+
+    function findCategoryById(catId, txType = 'expense') {
+      if (txType === 'atm') {
+        return { name: 'ATM 현금 인출', icon: 'ph-arrows-left-right', color: 'bg-sky-100 text-sky-700' };
+      }
+      const all = [...categories, ...incomeCategories];
+      const found = all.find(c => c.id === catId);
+      if (found) return found;
+      return txType === 'income'
+        ? { name: '기타수입', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' }
+        : { name: '기타지출', icon: 'ph-dots-three', color: 'bg-slate-100 text-slate-700' };
+    }
+
+    // Switch Transaction Type in Add/Edit Modal ('expense' vs 'income' vs 'atm')
+    function setTransactionType(type) {
+      selectedTxType = type;
+      const tabsWrap = document.getElementById('txTypeTabsWrap');
+      const expBtn = document.getElementById('txTypeExpenseBtn');
+      const incBtn = document.getElementById('txTypeIncomeBtn');
+      const atmBtn = document.getElementById('txTypeAtmBtn');
+      const submitBtn = document.getElementById('modalSubmitBtn');
+      const paymentLabel = document.getElementById('paymentMethodLabel');
+      const paymentToggleGroup = document.getElementById('paymentToggleGroup');
+      const atmTransferBadge = document.getElementById('atmTransferBadge');
+      const titleLabel = document.getElementById('titleInputLabel');
+      const titleInput = document.getElementById('inputTitle');
+      const catLabel = document.getElementById('categorySectionLabel');
+      const categorySectionWrap = document.getElementById('categorySectionWrap');
+      const atmInfoBanner = document.getElementById('atmInfoBanner');
+
+      const inactiveTabClass = "py-2 rounded-xl text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1 transition";
+
+      if (type === 'atm') {
+        if (tabsWrap) tabsWrap.classList.add('hidden');
+        submitBtn.className = "flex-1 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-md transition active:scale-[0.99] text-xs";
+        paymentLabel.innerText = '이동 경로';
+        if (paymentToggleGroup) paymentToggleGroup.classList.add('hidden');
+        if (atmTransferBadge) atmTransferBadge.classList.remove('hidden');
+        if (categorySectionWrap) categorySectionWrap.classList.add('hidden');
+        if (atmInfoBanner) atmInfoBanner.classList.remove('hidden');
+        titleLabel.innerText = '인출 항목명 (비워두면 \'ATM 현금 인출\'로 자동 저장)';
+        titleInput.placeholder = '예: Sparkasse ATM 인출, N26 바코드 인출 (생략 가능)';
+      } else if (type === 'income') {
+        if (tabsWrap) tabsWrap.classList.remove('hidden');
+        incBtn.className = "py-2 rounded-xl bg-white shadow-sm text-palette-green flex items-center justify-center gap-1 transition";
+        expBtn.className = inactiveTabClass;
+        if (atmBtn) atmBtn.className = inactiveTabClass;
+        submitBtn.className = "flex-1 py-3.5 bg-palette-green hover:opacity-95 text-white font-bold rounded-xl shadow-md transition active:scale-[0.99] text-xs";
+        paymentLabel.innerText = '입금 수단';
+        if (paymentToggleGroup) paymentToggleGroup.classList.remove('hidden');
+        if (atmTransferBadge) atmTransferBadge.classList.add('hidden');
+        if (categorySectionWrap) categorySectionWrap.classList.remove('hidden');
+        if (atmInfoBanner) atmInfoBanner.classList.add('hidden');
+        titleLabel.innerText = '수입 내역명 (검색 키워드)';
+        titleInput.placeholder = '예: 슈페어콘토 입금, 부모님 용돈, 알바 급여, 판트';
+        catLabel.innerText = '수입 카테고리';
+        if (!incomeCategories.find(c => c.id === selectedCategory) && incomeCategories.length > 0) {
+          selectedCategory = incomeCategories[0].id;
+        }
+        renderCategoryChips();
+      } else {
+        if (tabsWrap) tabsWrap.classList.remove('hidden');
+        expBtn.className = "py-2 rounded-xl bg-white shadow-sm text-palette-red flex items-center justify-center gap-1 transition";
+        incBtn.className = inactiveTabClass;
+        if (atmBtn) atmBtn.className = inactiveTabClass;
+        submitBtn.className = "flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-500/20 transition active:scale-[0.99] text-xs";
+        paymentLabel.innerText = '결제 수단';
+        if (paymentToggleGroup) paymentToggleGroup.classList.remove('hidden');
+        if (atmTransferBadge) atmTransferBadge.classList.add('hidden');
+        if (categorySectionWrap) categorySectionWrap.classList.remove('hidden');
+        if (atmInfoBanner) atmInfoBanner.classList.add('hidden');
+        titleLabel.innerText = '상호명 또는 항목 (검색 키워드)';
+        titleInput.placeholder = '예: Rewe 마트 장보기, DM 세제, WG 월세';
+        catLabel.innerText = '지출 카테고리';
+        if (!categories.find(c => c.id === selectedCategory) && categories.length > 0) {
+          selectedCategory = categories[0].id;
+        }
+        renderCategoryChips();
+      }
+    }
+
+    // Category Chips in Add/Edit Modal (with Drag & Drop Reordering)
+    let draggedChipIdx = null;
+
+    function renderCategoryChips() {
+      const container = document.getElementById('categoryChips');
+      const activeList = selectedTxType === 'income' ? incomeCategories : categories;
+
+      if (!activeList.find(c => c.id === selectedCategory) && activeList.length > 0) {
+        selectedCategory = activeList[0].id;
+      }
+
+      const activeRingClass = selectedTxType === 'income'
+        ? 'border-emerald-500 bg-emerald-50/70 font-bold text-emerald-900'
+        : 'border-amber-500 bg-amber-50/70 font-bold text-amber-900';
+
+      container.innerHTML = activeList.map((c, idx) => `
+        <button 
+          type="button" 
+          draggable="true"
+          ondragstart="handleChipDragStart(event, ${idx})"
+          ondragover="handleChipDragOver(event)"
+          ondragenter="handleChipDragEnter(event)"
+          ondragleave="handleChipDragLeave(event)"
+          ondrop="handleChipDrop(event, ${idx})"
+          ondragend="handleChipDragEnd(event)"
+          onclick="selectCategory('${c.id}')"
+          id="chip-${c.id}"
+          title="클릭하여 선택 / 끌어서 순서 변경"
+          class="cursor-grab active:cursor-grabbing flex flex-col items-center justify-center p-2 rounded-xl border text-center transition select-none ${selectedCategory === c.id ? activeRingClass : 'border-slate-100 bg-slate-50 text-slate-600'}">
+          <i class="ph ${c.icon} text-lg mb-1 pointer-events-none"></i>
+          <span class="text-[10px] leading-tight truncate w-full pointer-events-none">${c.name}</span>
+        </button>
+      `).join('');
+    }
+
+    function handleChipDragStart(e, idx) {
+      draggedChipIdx = idx;
+      e.dataTransfer.effectAllowed = 'move';
+      e.currentTarget.classList.add('dragging-row');
+    }
+
+    function handleChipDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleChipDragEnter(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over-row');
+    }
+
+    function handleChipDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over-row');
+    }
+
+    function handleChipDrop(e, targetIdx) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over-row');
+      if (draggedChipIdx === null || draggedChipIdx === targetIdx) return;
+
+      const activeList = selectedTxType === 'income' ? incomeCategories : categories;
+      const [movedItem] = activeList.splice(draggedChipIdx, 1);
+      activeList.splice(targetIdx, 0, movedItem);
+
+      draggedChipIdx = null;
+      saveCategoriesToStorage();
+      renderCategoryChips();
+    }
+
+    function handleChipDragEnd(e) {
+      draggedChipIdx = null;
+      e.currentTarget.classList.remove('dragging-row');
+      document.querySelectorAll('#categoryChips button').forEach(btn => {
+        btn.classList.remove('drag-over-row', 'dragging-row');
+      });
+    }
+
+    function selectCategory(catId) {
+      selectedCategory = catId;
+      renderCategoryChips();
+    }
+
+    function setPaymentMethod(method) {
+      selectedPayment = method;
+      const cardBtn = document.getElementById('payCardBtn');
+      const cashBtn = document.getElementById('payCashBtn');
+      if (method === '카드') {
+        cardBtn.className = "py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition";
+        cashBtn.className = "py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      } else {
+        cashBtn.className = "py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition";
+        cardBtn.className = "py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      }
+    }
+
+    // Month Navigation
+    let pickerTempYear = currentDate.getFullYear();
+
+    function changeMonth(delta) {
+      currentDate.setDate(1);
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      document.getElementById('searchNotice').classList.add('hidden');
+      renderUI();
+    }
+
+    // Year & Month Picker Modal
+    function openMonthPickerModal() {
+      pickerTempYear = currentDate.getFullYear();
+      document.getElementById('pickerYearInput').value = pickerTempYear;
+      renderMonthPickerGrid();
+      document.getElementById('monthPickerModal').classList.remove('hidden');
+    }
+
+    function closeMonthPickerModal() {
+      document.getElementById('monthPickerModal').classList.add('hidden');
+    }
+
+    function changePickerYear(delta) {
+      pickerTempYear = Math.min(9999, Math.max(1000, Number(pickerTempYear) + delta));
+      document.getElementById('pickerYearInput').value = pickerTempYear;
+      renderMonthPickerGrid();
+    }
+
+    function onPickerYearInput(val) {
+      const parsed = parseInt(val, 10);
+      if (!isNaN(parsed) && parsed >= 1000 && parsed <= 9999) {
+        pickerTempYear = parsed;
+        renderMonthPickerGrid();
+      }
+    }
+
+    function renderMonthPickerGrid() {
+      const grid = document.getElementById('monthPickerGrid');
+      const currentSelectedYear = currentDate.getFullYear();
+      const currentSelectedMonth = currentDate.getMonth() + 1;
+
+      const now = new Date();
+      const todayYear = now.getFullYear();
+      const todayMonth = now.getMonth() + 1;
+
+      let html = '';
+      for (let m = 1; m <= 12; m++) {
+        const monthKey = `${pickerTempYear}-${String(m).padStart(2, '0')}`;
+        const hasRecords = expenses.some(item => item.date && item.date.startsWith(monthKey));
+        const isSelected = (pickerTempYear === currentSelectedYear && m === currentSelectedMonth);
+        const isTodayMonth = (pickerTempYear === todayYear && m === todayMonth);
+
+        let btnClass = 'bg-slate-50 hover:bg-amber-50 text-slate-700 border-slate-100 hover:border-amber-300';
+        if (isSelected) {
+          btnClass = 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20 font-extrabold';
+        } else if (isTodayMonth) {
+          btnClass = 'bg-amber-50/70 text-amber-800 border-amber-300 font-bold';
+        }
+
+        const dotClass = isSelected ? 'bg-white' : 'bg-emerald-500';
+
+        html += `
+          <button type="button" onclick="selectYearMonth(${pickerTempYear}, ${m})"
+            class="relative py-3 rounded-xl border text-xs font-semibold transition flex flex-col items-center justify-center gap-1 active:scale-95 ${btnClass}">
+            <span>${m}월</span>
+            ${hasRecords ? `<span class="w-1.5 h-1.5 rounded-full ${dotClass}" title="내역 있음"></span>` : `<span class="w-1.5 h-1.5 opacity-0"></span>`}
+          </button>
+        `;
+      }
+      grid.innerHTML = html;
+    }
+
+    function selectYearMonth(year, month) {
+      currentDate = new Date(year, month - 1, 1);
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      document.getElementById('searchNotice').classList.add('hidden');
+      closeMonthPickerModal();
+      renderUI();
+    }
+
+    function jumpToTodayMonth() {
+      const now = new Date();
+      selectYearMonth(now.getFullYear(), now.getMonth() + 1);
+    }
+
+    // Main Render
+    function renderUI(filteredList = null) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+
+      document.getElementById('currentMonthLabel').innerText = `${year}년 ${month}월`;
+
+      let displayList = filteredList;
+      const isSearchActive = filteredList !== null;
+
+      if (!isSearchActive) {
+        displayList = expenses.filter(item => item.date.startsWith(monthKey));
+        displayList.sort((a, b) => {
+          const dateDiff = new Date(b.date) - new Date(a.date);
+          if (dateDiff !== 0) return dateDiff;
+          return (b.id || 0) - (a.id || 0);
+        });
+      }
+
+      // Calculate monthly expense & income totals
+      const currentMonthItems = expenses.filter(item => item.date.startsWith(monthKey));
+      const monthlyExpenseTotal = currentMonthItems
+        .filter(item => (item.type || 'expense') === 'expense')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+      const monthlyIncomeTotal = currentMonthItems
+        .filter(item => item.type === 'income')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      document.getElementById('monthlyTotalEur').innerText = '- ' + formatEur(monthlyExpenseTotal);
+      document.getElementById('monthlyTotalKrw').innerText = formatKrw(monthlyExpenseTotal);
+
+      document.getElementById('monthlyIncomeEur').innerText = '+ ' + formatEur(monthlyIncomeTotal);
+      document.getElementById('monthlyIncomeKrw').innerText = formatKrw(monthlyIncomeTotal);
+
+      // Budget Gauge = Current Bank Account Balance (예산 잔여 = 현재 계좌 잔여)
+      // 계좌 잔여 = 설정 예산(원금) + 계좌 수입(카드/계좌) - 계좌 지출(카드/계좌) - ATM 현금 인출
+      const { accountOutflowTotal, totalAvailable, remaining } = getAccountStats();
+      const denom = totalAvailable > 0 ? totalAvailable : (monthlyBudget > 0 ? monthlyBudget : 1);
+      const pct = Math.min(100, Math.max(0, (accountOutflowTotal / denom) * 100));
+      const progressBar = document.getElementById('budgetProgressBar');
+      const remainingLabel = document.getElementById('budgetRemainingLabel');
+
+      if (remaining >= 0) {
+        remainingLabel.innerText = `€ ${remaining.toFixed(2)} 남음`;
+        remainingLabel.className = "font-extrabold text-palette-green group-hover:underline underline-offset-2";
+        progressBar.className = "h-full bg-palette-green rounded-full transition-all duration-500";
+      } else {
+        remainingLabel.innerText = `€ ${Math.abs(remaining).toFixed(2)} 초과 지출!`;
+        remainingLabel.className = "font-extrabold text-palette-red group-hover:underline underline-offset-2";
+        progressBar.className = "h-full bg-palette-red rounded-full transition-all duration-500";
+      }
+      progressBar.style.width = `${pct}%`;
+
+      // Update Cash Pocket Bar (Idea 1)
+      renderCashPocket();
+
+      // Render Items Grouped by Date
+      const listContainer = document.getElementById('expenseList');
+      const emptyState = document.getElementById('emptyState');
+      document.getElementById('itemCountLabel').innerText = `총 ${displayList.length}건`;
+
+      if (displayList.length === 0) {
+        listContainer.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        if (isSearchActive) {
+          document.getElementById('emptyStateText').innerText = '검색 조건과 일치하는 내역이 없습니다.';
+        } else {
+          document.getElementById('emptyStateText').innerText = '이번 달 등록된 내역이 없습니다.';
+        }
+      } else {
+        emptyState.classList.add('hidden');
+
+        // Group items by date (YYYY-MM-DD)
+        const groupedByDate = {};
+        displayList.forEach(item => {
+          if (!groupedByDate[item.date]) {
+            groupedByDate[item.date] = [];
+          }
+          groupedByDate[item.date].push(item);
+        });
+
+        const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+        function formatDateHeader(dateStr) {
+          const parts = dateStr.split('-');
+          if (parts.length !== 3) return dateStr;
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10);
+          const d = parseInt(parts[2], 10);
+          const dateObj = new Date(y, m - 1, d);
+          const dayOfWeek = dayNames[dateObj.getDay()];
+          const showYear = y !== currentDate.getFullYear();
+          return showYear ? `${y}년 ${m}월 ${d}일 (${dayOfWeek})` : `${m}월 ${d}일 (${dayOfWeek})`;
+        }
+
+        listContainer.innerHTML = sortedDates.map(dateKey => {
+          const dayItems = groupedByDate[dateKey];
+          const dailyExpense = dayItems
+            .filter(i => (i.type || 'expense') === 'expense')
+            .reduce((sum, i) => sum + Number(i.amount), 0);
+          const dailyIncome = dayItems
+            .filter(i => i.type === 'income')
+            .reduce((sum, i) => sum + Number(i.amount), 0);
+          const dailyAtm = dayItems
+            .filter(i => i.type === 'atm')
+            .reduce((sum, i) => sum + Number(i.amount), 0);
+
+          const itemsHtml = dayItems.map(item => {
+            const isIncome = item.type === 'income';
+            const isAtm = item.type === 'atm';
+            const cat = findCategoryById(item.category, item.type || 'expense');
+
+            const badgeHtml = isAtm
+              ? `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">계좌 ➔ 지갑</span>`
+              : `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-medium ${item.payment === '카드' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-700'}">${item.payment}</span>`;
+
+            const amountColorClass = isAtm
+              ? 'text-sky-600'
+              : (isIncome ? 'text-palette-green' : 'text-palette-red');
+
+            const amountPrefix = isAtm
+              ? '🏧 '
+              : (isIncome ? '+ ' : '- ');
+
+            return `
+              <div onclick="openEditModal(${item.id})" class="group cursor-pointer bg-white p-3.5 rounded-xl border ${isAtm ? 'border-sky-100 bg-sky-50/20' : 'border-slate-100'} hover:border-amber-300 hover:shadow-md transition flex items-center justify-between gap-3 active:scale-[0.99]">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl ${cat.color} flex-shrink-0 flex items-center justify-center text-lg">
+                    ${isAtm ? '<span>🏧</span>' : `<i class="ph ${cat.icon}"></i>`}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="font-bold text-sm text-slate-900 truncate">${item.title}</span>
+                      ${badgeHtml}
+                    </div>
+                    <div class="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 min-w-0">
+                      <span class="font-medium ${isAtm ? 'text-sky-600' : 'text-slate-500'} flex-shrink-0 whitespace-nowrap">${isAtm ? 'ATM 현금 인출 (지출 미포함)' : cat.name}</span>
+                      ${item.memo ? `<span class="truncate text-slate-400">${item.memo}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="text-right flex-shrink-0 flex items-center gap-2">
+                  <div>
+                    <div class="font-extrabold text-sm ${amountColorClass}">
+                      ${amountPrefix}${formatEur(item.amount)}
+                    </div>
+                    <div class="text-[10px] text-slate-400">${formatKrw(item.amount)}</div>
+                  </div>
+                  <div class="flex items-center gap-1 text-slate-300 group-hover:text-slate-500">
+                    <i class="ph ph-pencil-simple text-sm text-amber-500 opacity-0 group-hover:opacity-100 transition"></i>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/70 space-y-2">
+              <!-- Date Header & Daily Subtotals -->
+              <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-200/70">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span class="text-xs font-extrabold text-slate-800">${formatDateHeader(dateKey)}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600 font-semibold">${dayItems.length}건</span>
+                </div>
+                <div class="text-right flex items-center gap-2 text-xs">
+                  ${dailyAtm > 0 ? `<span class="font-bold text-sky-600">🏧 ${formatEur(dailyAtm)}</span>` : ''}
+                  ${dailyIncome > 0 ? `<span class="font-bold text-palette-green">+${formatEur(dailyIncome)}</span>` : ''}
+                  ${dailyExpense > 0 ? `<span class="font-bold text-palette-red">-${formatEur(dailyExpense)}</span>` : ''}
+                </div>
+              </div>
+              <!-- Day Items -->
+              <div class="space-y-2">
+                ${itemsHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Instant Search Implementation
+    function handleSearch() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      const searchNotice = document.getElementById('searchNotice');
+      const searchAll = document.getElementById('searchAllMonths').checked;
+
+      if (!query) {
+        clearBtn.classList.add('hidden');
+        searchNotice.classList.add('hidden');
+        renderUI();
+        return;
+      }
+
+      clearBtn.classList.remove('hidden');
+      searchNotice.classList.remove('hidden');
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+
+      const matched = expenses.filter(item => {
+        if (!searchAll && !item.date.startsWith(monthKey)) {
+          return false;
+        }
+
+        const cat = findCategoryById(item.category, item.type || 'expense');
+        const catName = cat ? cat.name.toLowerCase() : '';
+        const titleMatch = item.title.toLowerCase().includes(query);
+        const memoMatch = (item.memo || '').toLowerCase().includes(query);
+        const catMatch = catName.includes(query);
+        const amountMatch = String(item.amount).includes(query);
+
+        return titleMatch || memoMatch || catMatch || amountMatch;
+      });
+
+      matched.sort((a, b) => new Date(b.date) - new Date(a.date));
+      document.getElementById('searchCount').innerText = matched.length;
+      renderUI(matched);
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('clearSearchBtn').classList.add('hidden');
+      document.getElementById('searchNotice').classList.add('hidden');
+      renderUI();
+    }
+
+    // Open Add Modal
+    function openAddModal(defaultType = 'expense') {
+      editingExpenseId = null;
+      const now = new Date();
+      const viewYear = currentDate.getFullYear();
+      const viewMonth = currentDate.getMonth() + 1;
+      let defaultDateStr = now.toISOString().split('T')[0];
+      if (now.getFullYear() !== viewYear || (now.getMonth() + 1) !== viewMonth) {
+        defaultDateStr = `${viewYear}-${String(viewMonth).padStart(2, '0')}-01`;
+      }
+
+      document.getElementById('modalTitle').innerText = '내역 입력';
+      document.getElementById('modalModeBadge').classList.add('hidden');
+      document.getElementById('modalDeleteBtn').classList.add('hidden');
+      document.getElementById('modalSubmitBtn').innerText = '저장하기';
+
+      document.getElementById('inputDate').value = defaultDateStr;
+      document.getElementById('inputAmount').value = '';
+      document.getElementById('inputTitle').value = '';
+      document.getElementById('inputMemo').value = '';
+      document.getElementById('previewKrw').innerText = '약 0원';
+
+      selectedPayment = '카드';
+      setPaymentMethod('카드');
+      setTransactionType(defaultType);
+
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    // Open Edit Modal
+    function openEditModal(id) {
+      const item = expenses.find(i => i.id === id);
+      if (!item) return;
+
+      editingExpenseId = id;
+
+      document.getElementById('modalTitle').innerText = '내역 수정';
+      document.getElementById('modalModeBadge').classList.remove('hidden');
+      document.getElementById('modalDeleteBtn').classList.remove('hidden');
+
+      document.getElementById('inputDate').value = item.date;
+      document.getElementById('inputAmount').value = item.amount;
+      document.getElementById('inputTitle').value = item.title;
+      document.getElementById('inputMemo').value = item.memo || '';
+
+      selectedCategory = item.category;
+      selectedPayment = item.payment || '카드';
+      setPaymentMethod(selectedPayment);
+      setTransactionType(item.type || 'expense');
+      if (item.type !== 'atm') {
+        selectedCategory = item.category;
+        renderCategoryChips();
+      }
+      document.getElementById('modalSubmitBtn').innerText = '수정 완료';
+      previewKrwConversion();
+
+      document.getElementById('addModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+      editingExpenseId = null;
+      document.getElementById('addModal').classList.add('hidden');
+    }
+
+    function previewKrwConversion() {
+      const val = parseFloat(document.getElementById('inputAmount').value) || 0;
+      document.getElementById('previewKrw').innerText = formatKrw(val);
+    }
+
+    function saveExpense() {
+      const date = document.getElementById('inputDate').value;
+      const amount = parseFloat(document.getElementById('inputAmount').value);
+      let title = document.getElementById('inputTitle').value.trim();
+      const memo = document.getElementById('inputMemo').value.trim();
+
+      if (!date) {
+        alert('날짜를 입력해 주세요.');
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        alert('올바른 금액(€)을 입력해 주세요.');
+        return;
+      }
+      if (selectedTxType === 'atm' && !title) {
+        title = 'ATM 현금 인출';
+      }
+      if (!title) {
+        alert('항목명을 입력해 주세요.');
+        return;
+      }
+
+      const finalCategory = selectedTxType === 'atm' ? 'atm_withdraw' : selectedCategory;
+      const finalPayment = selectedTxType === 'atm' ? '계좌➔지갑' : selectedPayment;
+
+      if (editingExpenseId !== null) {
+        const index = expenses.findIndex(i => i.id === editingExpenseId);
+        if (index !== -1) {
+          expenses[index] = {
+            ...expenses[index],
+            type: selectedTxType,
+            date: date,
+            amount: amount,
+            title: title,
+            category: finalCategory,
+            payment: finalPayment,
+            memo: memo
+          };
+        }
+      } else {
+        const newExpense = {
+          id: Date.now(),
+          type: selectedTxType,
+          date: date,
+          title: title,
+          category: finalCategory,
+          amount: amount,
+          payment: finalPayment,
+          memo: memo
+        };
+        expenses.unshift(newExpense);
+      }
+
+      saveToStorage();
+      closeAddModal();
+
+      const targetDate = new Date(date);
+      currentDate = targetDate;
+      renderUI();
+    }
+
+    function deleteCurrentEditingExpense() {
+      if (editingExpenseId !== null) {
+        if (confirm('이 내역을 정말 삭제하시겠습니까?')) {
+          expenses = expenses.filter(i => i.id !== editingExpenseId);
+          saveToStorage();
+          closeAddModal();
+          renderUI();
+        }
+      }
+    }
+
+    function deleteExpense(id) {
+      if (confirm('이 내역을 삭제하시겠습니까?')) {
+        expenses = expenses.filter(i => i.id !== id);
+        saveToStorage();
+        handleSearch();
+      }
+    }
+
+    // ================= SETTINGS MODAL & CATEGORY MANAGEMENT =================
+    function openSettingsModal(initialTab = 'expense', mode = 'full') {
+      tempCategories = JSON.parse(JSON.stringify(categories));
+      tempIncomeCategories = JSON.parse(JSON.stringify(incomeCategories));
+      document.getElementById('settingsRatePreview').innerText = exchangeRate.toLocaleString();
+      document.getElementById('settingsBudgetPreview').innerText = monthlyBudget.toLocaleString();
+
+      const modalTitle = document.getElementById('settingsModalTitle');
+      const generalSection = document.getElementById('settingsGeneralSection');
+
+      if (mode === 'categoryOnly') {
+        modalTitle.innerText = '카테고리 편집';
+        generalSection.classList.add('hidden');
+      } else {
+        modalTitle.innerText = '설정 (Settings)';
+        generalSection.classList.remove('hidden');
+      }
+
+      switchSettingsCategoryTab(initialTab);
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function switchSettingsCategoryTab(tab) {
+      settingsActiveTab = tab;
+      const expTabBtn = document.getElementById('settingsTabExpenseBtn');
+      const incTabBtn = document.getElementById('settingsTabIncomeBtn');
+      if (tab === 'income') {
+        incTabBtn.className = "py-1.5 rounded-lg bg-white shadow-sm text-emerald-700 transition";
+        expTabBtn.className = "py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      } else {
+        expTabBtn.className = "py-1.5 rounded-lg bg-white shadow-sm text-slate-800 transition";
+        incTabBtn.className = "py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      }
+      renderSettingsCategoryList();
+    }
+
+    function getActiveTempList() {
+      return settingsActiveTab === 'income' ? tempIncomeCategories : tempCategories;
+    }
+
+    let draggedSettingsCatIdx = null;
+
+    function renderSettingsCategoryList() {
+      const container = document.getElementById('settingsCategoryList');
+      const list = getActiveTempList();
+      container.innerHTML = list.map((cat, idx) => `
+        <div 
+          data-cat-row="${idx}"
+          draggable="true"
+          ondragstart="handleCatDragStart(event, ${idx})"
+          ondragover="handleCatDragOver(event)"
+          ondragenter="handleCatDragEnter(event)"
+          ondragleave="handleCatDragLeave(event)"
+          ondrop="handleCatDrop(event, ${idx})"
+          ondragend="handleCatDragEnd(event)"
+          class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200/80 transition">
+          
+          <!-- Drag Handle (Mouse & Touch) -->
+          <div 
+            title="끌어서 순서 변경"
+            ontouchstart="handleCatTouchStart(event, ${idx})"
+            ontouchmove="handleCatTouchMove(event)"
+            ontouchend="handleCatTouchEnd(event)"
+            class="w-6 h-8 flex items-center justify-center text-slate-400 hover:text-amber-600 cursor-grab active:cursor-grabbing flex-shrink-0 select-none">
+            <i class="ph ph-dots-six-vertical text-lg pointer-events-none"></i>
+          </div>
+
+          <!-- Clickable Icon Button to Open 24-Preset Icon Picker Modal -->
+          <button 
+            type="button" 
+            onclick="openIconPickerModal(${idx})" 
+            title="클릭하여 이미지 선택"
+            class="w-9 h-9 rounded-lg ${cat.color} flex items-center justify-center text-base flex-shrink-0 hover:scale-105 transition shadow-sm ring-1 ring-black/5">
+            <i class="ph ${cat.icon}"></i>
+          </button>
+          
+          <!-- Editable Category Name Input -->
+          <input 
+            type="text" 
+            value="${cat.name}" 
+            onfocus="this.closest('[data-cat-row]').draggable = false"
+            onblur="this.closest('[data-cat-row]').draggable = true"
+            oninput="updateTempCategoryName(${idx}, this.value)"
+            placeholder="카테고리 이름"
+            class="flex-1 bg-white px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-800 outline-none focus:border-amber-500"
+          />
+
+          <!-- Delete Category Button -->
+          <button 
+            type="button" 
+            onclick="removeTempCategory(${idx})" 
+            title="카테고리 삭제"
+            class="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition">
+            <i class="ph ph-trash text-sm"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Mouse Drag & Drop for Settings Category List
+    function handleCatDragStart(e, idx) {
+      draggedSettingsCatIdx = idx;
+      e.dataTransfer.effectAllowed = 'move';
+      e.currentTarget.classList.add('dragging-row');
+    }
+
+    function handleCatDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleCatDragEnter(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over-row');
+    }
+
+    function handleCatDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over-row');
+    }
+
+    function handleCatDrop(e, targetIdx) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over-row');
+      if (draggedSettingsCatIdx === null || draggedSettingsCatIdx === targetIdx) return;
+
+      const list = getActiveTempList();
+      const [movedItem] = list.splice(draggedSettingsCatIdx, 1);
+      list.splice(targetIdx, 0, movedItem);
+
+      draggedSettingsCatIdx = null;
+      renderSettingsCategoryList();
+    }
+
+    function handleCatDragEnd(e) {
+      draggedSettingsCatIdx = null;
+      e.currentTarget.classList.remove('dragging-row');
+      document.querySelectorAll('#settingsCategoryList [data-cat-row]').forEach(row => {
+        row.classList.remove('drag-over-row', 'dragging-row');
+      });
+    }
+
+    // Touch Drag & Drop for Mobile / Android
+    function handleCatTouchStart(e, idx) {
+      draggedSettingsCatIdx = idx;
+      const row = e.currentTarget.closest('[data-cat-row]');
+      if (row) row.classList.add('dragging-row');
+    }
+
+    function handleCatTouchMove(e) {
+      if (draggedSettingsCatIdx === null) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = targetEl ? targetEl.closest('[data-cat-row]') : null;
+
+      document.querySelectorAll('#settingsCategoryList [data-cat-row]').forEach(row => {
+        row.classList.remove('drag-over-row');
+      });
+
+      if (targetRow) {
+        const targetIdx = parseInt(targetRow.getAttribute('data-cat-row'), 10);
+        if (!isNaN(targetIdx) && targetIdx !== draggedSettingsCatIdx) {
+          targetRow.classList.add('drag-over-row');
+        }
+      }
+    }
+
+    function handleCatTouchEnd(e) {
+      if (draggedSettingsCatIdx === null) return;
+      const touch = e.changedTouches[0];
+      const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = targetEl ? targetEl.closest('[data-cat-row]') : null;
+
+      if (targetRow) {
+        const targetIdx = parseInt(targetRow.getAttribute('data-cat-row'), 10);
+        if (!isNaN(targetIdx) && targetIdx !== draggedSettingsCatIdx) {
+          const list = getActiveTempList();
+          const [movedItem] = list.splice(draggedSettingsCatIdx, 1);
+          list.splice(targetIdx, 0, movedItem);
+        }
+      }
+
+      draggedSettingsCatIdx = null;
+      renderSettingsCategoryList();
+    }
+
+    // 24-Preset Icon Picker Modal Logic
+    let editingIconCategoryIdx = null;
+
+    function openIconPickerModal(idx) {
+      editingIconCategoryIdx = idx;
+      const list = getActiveTempList();
+      const targetCat = list[idx];
+      if (!targetCat) return;
+
+      document.getElementById('iconPickerTargetName').innerText = `[${targetCat.name || '새 카테고리'}]`;
+      renderIconPickerGrids(targetCat.icon);
+      document.getElementById('iconPickerModal').classList.remove('hidden');
+    }
+
+    function closeIconPickerModal() {
+      editingIconCategoryIdx = null;
+      document.getElementById('iconPickerModal').classList.add('hidden');
+    }
+
+    function renderIconPickerGrids(currentIcon) {
+      const financeSection = document.getElementById('iconPickerFinanceSection');
+      const livingSection = document.getElementById('iconPickerLivingSection');
+      const financeGrid = document.getElementById('iconPickerFinanceGrid');
+      const livingGrid = document.getElementById('iconPickerLivingGrid');
+
+      const renderPresetButton = (preset) => {
+        const isSelected = preset.icon === currentIcon;
+        const activeClass = isSelected
+          ? 'ring-2 ring-amber-500 bg-amber-50/70 border-amber-400'
+          : 'border-slate-100 bg-slate-50/60 hover:bg-slate-100 hover:border-slate-300';
+
+        return `
+          <button type="button" onclick="selectIconPreset('${preset.icon}', '${preset.color}', '${preset.label}')"
+            class="p-2 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition active:scale-95 ${activeClass}">
+            <div class="w-10 h-10 rounded-xl ${preset.color} flex items-center justify-center text-xl shadow-sm">
+              <i class="ph ${preset.icon}"></i>
+            </div>
+            <span class="text-[10px] font-semibold text-slate-700 leading-tight truncate w-full text-center">${preset.label}</span>
+          </button>
+        `;
+      };
+
+      if (settingsActiveTab === 'income') {
+        financeSection.classList.remove('hidden');
+        livingSection.classList.add('hidden');
+        financeGrid.innerHTML = ICON_PRESETS.filter(p => p.group === 'finance').map(renderPresetButton).join('');
+      } else {
+        livingSection.classList.remove('hidden');
+        financeSection.classList.add('hidden');
+        livingGrid.innerHTML = ICON_PRESETS.filter(p => p.group === 'living').map(renderPresetButton).join('');
+      }
+    }
+
+    function selectIconPreset(iconName, colorClass, presetLabel) {
+      if (editingIconCategoryIdx === null) return;
+      const list = getActiveTempList();
+      if (list[editingIconCategoryIdx]) {
+        list[editingIconCategoryIdx].icon = iconName;
+        list[editingIconCategoryIdx].color = colorClass;
+        if (presetLabel) {
+          list[editingIconCategoryIdx].name = presetLabel;
+        }
+      }
+      closeIconPickerModal();
+      renderSettingsCategoryList();
+    }
+
+    function updateTempCategoryName(idx, newName) {
+      const list = getActiveTempList();
+      list[idx].name = newName;
+    }
+
+    function removeTempCategory(idx) {
+      const list = getActiveTempList();
+      if (list.length <= 1) {
+        alert('최소 1개의 카테고리는 유지해야 합니다.');
+        return;
+      }
+      list.splice(idx, 1);
+      renderSettingsCategoryList();
+    }
+
+    function addNewCategoryRow() {
+      const list = getActiveTempList();
+      const defaultName = settingsActiveTab === 'income' ? '기타수입' : '기타지출';
+      list.push({
+        id: (settingsActiveTab === 'income' ? 'inc_' : 'cat_') + Date.now(),
+        name: defaultName,
+        icon: 'ph-dots-three',
+        color: 'bg-slate-100 text-slate-700'
+      });
+      renderSettingsCategoryList();
+    }
+
+    function resetCategoriesToDefault() {
+      if (confirm('현재 탭의 카테고리를 초기 기본값으로 되돌리시겠습니까?')) {
+        if (settingsActiveTab === 'income') {
+          tempIncomeCategories = JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+        } else {
+          tempCategories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+        }
+        renderSettingsCategoryList();
+      }
+    }
+
+    function saveSettingsCategories() {
+      for (let i = 0; i < tempCategories.length; i++) {
+        tempCategories[i].name = tempCategories[i].name.trim() || '기타지출';
+      }
+      for (let i = 0; i < tempIncomeCategories.length; i++) {
+        tempIncomeCategories[i].name = tempIncomeCategories[i].name.trim() || '기타수입';
+      }
+      categories = JSON.parse(JSON.stringify(tempCategories));
+      incomeCategories = JSON.parse(JSON.stringify(tempIncomeCategories));
+      saveCategoriesToStorage();
+      renderCategoryChips();
+      renderUI();
+      closeSettingsModal();
+    }
+
+    // Exchange Rate Modal
+    function openExchangeRateModal() {
+      document.getElementById('settingExchangeRate').value = exchangeRate;
+      document.getElementById('exchangeModal').classList.remove('hidden');
+    }
+    function closeExchangeRateModal() {
+      document.getElementById('exchangeModal').classList.add('hidden');
+    }
+    function saveExchangeRate() {
+      const newRate = parseFloat(document.getElementById('settingExchangeRate').value);
+      if (newRate > 0) {
+        exchangeRate = newRate;
+        localStorage.setItem('europocket_exchange_rate', exchangeRate);
+        document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
+        closeExchangeRateModal();
+        renderUI();
+      }
+    }
+
+    // Budget Modal
+    function openBudgetModal() {
+      document.getElementById('settingBudgetAmount').value = monthlyBudget;
+      document.getElementById('budgetModal').classList.remove('hidden');
+    }
+    function closeBudgetModal() {
+      document.getElementById('budgetModal').classList.add('hidden');
+    }
+    function saveBudget() {
+      const val = parseFloat(document.getElementById('settingBudgetAmount').value);
+      if (val >= 0) {
+        monthlyBudget = val;
+        localStorage.setItem('europocket_budget', monthlyBudget);
+        closeBudgetModal();
+        renderUI();
+      }
+    }
+
+    // ==========================================
+    // Idea 1 (메인) + Idea 2 (서브 결합 - 추천 1):
+    // 미니 ATM 지폐 충전 시 일일 내역에도 '🏧 ATM 현금 인출' 카드 자동 생성
+    // ==========================================
+    cashWalletBase = parseFloat(localStorage.getItem('europocket_cash_charged_v2') ?? '30.00');
+    if (isNaN(cashWalletBase)) cashWalletBase = 30.00;
+
+    function getCashPocketStats() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+      const monthItems = expenses.filter(item => item.date.startsWith(monthKey));
+
+      // 일일 내역에 기록된 '🏧 ATM 현금 인출 (type === atm)' 합계
+      const atmWithdrawTotal = monthItems
+        .filter(item => item.type === 'atm')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      const cashExpenseTotal = monthItems
+        .filter(item => item.payment === '현금' && (item.type || 'expense') === 'expense')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      const cashIncomeTotal = monthItems
+        .filter(item => item.payment === '현금' && item.type === 'income')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      // 기존 테스트 데이터(v2)와 ATM 인출 내역 간 이중 합산 방지용 1회 자동 보정(v3)
+      const savedBaseV3 = localStorage.getItem('europocket_cash_base_v3');
+      if (savedBaseV3 === null) {
+        const legacyCharged = parseFloat(localStorage.getItem('europocket_cash_charged_v2') ?? '30.00');
+        const safeLegacy = isNaN(legacyCharged) ? 30.00 : legacyCharged;
+        cashWalletBase = Number((safeLegacy - atmWithdrawTotal).toFixed(2));
+        localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+      } else {
+        cashWalletBase = parseFloat(savedBaseV3);
+        if (isNaN(cashWalletBase)) cashWalletBase = 0;
+      }
+
+      // 총 충전/인출 원금 = 기본 보유 원금(직접 설정분) + 이번 달 ATM 인출 내역 합계
+      const totalCharged = Number((cashWalletBase + atmWithdrawTotal).toFixed(2));
+
+      // 입력 순서에 상관없이 [총 충전/인출 원금 + 현금 수입 내역 - 현금 지출 내역]을 최우선으로 반영
+      const currentBalance = Number((totalCharged + cashIncomeTotal - cashExpenseTotal).toFixed(2));
+      return {
+        atmWithdrawTotal,
+        totalCharged,
+        cashExpenseTotal,
+        cashIncomeTotal,
+        currentBalance
+      };
+    }
+
+    function renderCashPocket() {
+      const { totalCharged, cashExpenseTotal, cashIncomeTotal, currentBalance } = getCashPocketStats();
+      const barBalanceEl = document.getElementById('cashPocketBalanceEur');
+      if (barBalanceEl) {
+        barBalanceEl.innerText = formatEur(currentBalance);
+        if (currentBalance < 0) {
+          barBalanceEl.className = "font-extrabold text-sm text-palette-red";
+        } else {
+          barBalanceEl.className = "font-extrabold text-sm text-amber-300";
+        }
+      }
+
+      const modalCurrentEl = document.getElementById('cashModalCurrentBalanceEur');
+      if (modalCurrentEl) {
+        modalCurrentEl.innerText = formatEur(currentBalance);
+        document.getElementById('cashModalKrwPreview').innerText = formatKrw(currentBalance);
+        document.getElementById('cashModalBaseEur').innerText = formatEur(totalCharged);
+        document.getElementById('cashModalIncomeEur').innerText = '+ ' + formatEur(cashIncomeTotal);
+        document.getElementById('cashModalSpentEur').innerText = '- ' + formatEur(cashExpenseTotal);
+      }
+    }
+
+    function openCashPocketModal() {
+      renderCashPocket();
+      const { currentBalance } = getCashPocketStats();
+      document.getElementById('atmStageInput').value = 0;
+      document.getElementById('directCashBalanceInput').value = currentBalance.toFixed(2);
+      document.getElementById('cashPocketModal').classList.remove('hidden');
+    }
+
+    function closeCashPocketModal() {
+      document.getElementById('cashPocketModal').classList.add('hidden');
+    }
+
+    function stageAtmNote(noteVal) {
+      const inputEl = document.getElementById('atmStageInput');
+      const cur = parseFloat(inputEl.value) || 0;
+      inputEl.value = (cur + noteVal).toFixed(2);
+    }
+
+    function clearAtmStaging() {
+      document.getElementById('atmStageInput').value = 0;
+    }
+
+    function applyAtmTopUp() {
+      const addVal = parseFloat(document.getElementById('atmStageInput').value);
+      if (isNaN(addVal) || addVal <= 0) {
+        alert('충전할 지폐 금액(€)을 선택하거나 입력해 주세요.');
+        return;
+      }
+
+      // 오늘 날짜 (다른 달을 보고 있다면 해당 월 1일)로 일일 내역에 '🏧 ATM 현금 인출' 카드 자동 생성
+      const now = new Date();
+      const viewYear = currentDate.getFullYear();
+      const viewMonth = currentDate.getMonth() + 1;
+      let dateStr = now.toISOString().split('T')[0];
+      if (now.getFullYear() !== viewYear || (now.getMonth() + 1) !== viewMonth) {
+        dateStr = `${viewYear}-${String(viewMonth).padStart(2, '0')}-01`;
+      }
+
+      const newAtmRecord = {
+        id: Date.now(),
+        type: 'atm',
+        date: dateStr,
+        title: 'ATM 현금 인출',
+        category: 'atm_withdraw',
+        amount: Number(addVal.toFixed(2)),
+        payment: '계좌➔지갑',
+        memo: '미니 ATM 원터치 지폐 충전'
+      };
+
+      expenses.unshift(newAtmRecord);
+      saveToStorage();
+
+      document.getElementById('atmStageInput').value = 0;
+      renderUI();
+      const { currentBalance } = getCashPocketStats();
+      document.getElementById('directCashBalanceInput').value = currentBalance.toFixed(2);
+    }
+
+    function saveDirectCashBalance() {
+      const targetBalance = parseFloat(document.getElementById('directCashBalanceInput').value);
+      if (isNaN(targetBalance)) {
+        alert('올바른 금액(€)을 입력해 주세요.');
+        return;
+      }
+      // 내역 추가 없이 현금 지출/수입/ATM인출 내역을 그대로 유지하면서 목표 잔액이 되도록 기본 보유 원금을 역산
+      const { atmWithdrawTotal, cashExpenseTotal, cashIncomeTotal } = getCashPocketStats();
+      cashWalletBase = Number((targetBalance - atmWithdrawTotal - cashIncomeTotal + cashExpenseTotal).toFixed(2));
+      localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+      localStorage.setItem('europocket_cash_charged_v2', Number((cashWalletBase + atmWithdrawTotal).toFixed(2)));
+      renderUI();
+      closeCashPocketModal();
+    }
+
+    // ==========================================
+    // 🏦 계좌(예산) 잔여 계산 및 계좌 입출금 내역 (조회 전용 · 최신순)
+    // ==========================================
+    function getAccountStats() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+      const monthItems = expenses.filter(item => item.date.startsWith(monthKey));
+
+      // 계좌에서 지출된 금액 (카드/계좌 지출)
+      const accountCardExpenseTotal = monthItems
+        .filter(item => (item.type || 'expense') === 'expense' && (item.payment || '카드') !== '현금')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      // 계좌에서 현금 주머니로 빠져나간 ATM 현금 인출 금액
+      const atmWithdrawTotal = monthItems
+        .filter(item => item.type === 'atm')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      // 이번 달 들어온 총 수입 (카드/계좌 수입 + 현금 수입 모두 예산 잔여에 반영)
+      const accountIncomeTotal = monthItems
+        .filter(item => item.type === 'income')
+        .reduce((sum, item) => sum + Number(item.amount), 0);
+
+      const accountOutflowTotal = Number((accountCardExpenseTotal + atmWithdrawTotal).toFixed(2));
+      const totalAvailable = Number((monthlyBudget + accountIncomeTotal).toFixed(2));
+      const remaining = Number((monthlyBudget + accountIncomeTotal - accountOutflowTotal).toFixed(2));
+
+      // 예산/계좌 변동 내역 리스트 (수입 전체 + 카드/계좌 지출 + ATM 인출 최신순 정렬)
+      const accountHistoryItems = monthItems
+        .filter(item => item.type === 'income' || item.type === 'atm' || (item.payment || '카드') !== '현금')
+        .sort((a, b) => {
+          const dateDiff = new Date(b.date) - new Date(a.date);
+          if (dateDiff !== 0) return dateDiff;
+          return (b.id || 0) - (a.id || 0);
+        });
+
+      return {
+        accountCardExpenseTotal,
+        atmWithdrawTotal,
+        accountIncomeTotal,
+        accountOutflowTotal,
+        totalAvailable,
+        remaining,
+        accountHistoryItems
+      };
+    }
+
+    function openAccountHistoryModal() {
+      renderAccountHistoryModal();
+      document.getElementById('accountHistoryModal').classList.remove('hidden');
+    }
+
+    function closeAccountHistoryModal() {
+      document.getElementById('accountHistoryModal').classList.add('hidden');
+    }
+
+    function renderAccountHistoryModal() {
+      const {
+        accountIncomeTotal,
+        accountOutflowTotal,
+        remaining,
+        accountHistoryItems
+      } = getAccountStats();
+
+      const remEurEl = document.getElementById('accountModalRemainingEur');
+      remEurEl.innerText = formatEur(remaining);
+      remEurEl.className = remaining >= 0
+        ? "text-2xl font-extrabold text-palette-green tracking-tight"
+        : "text-2xl font-extrabold text-palette-red tracking-tight";
+
+      document.getElementById('accountModalRemainingKrw').innerText = formatKrw(remaining);
+      document.getElementById('accountModalBudgetBaseEur').innerText = formatEur(monthlyBudget);
+      document.getElementById('accountModalIncomeEur').innerText = '+ ' + formatEur(accountIncomeTotal);
+      document.getElementById('accountModalOutflowEur').innerText = '- ' + formatEur(accountOutflowTotal);
+      document.getElementById('accountModalCountLabel').innerText = `총 ${accountHistoryItems.length}건`;
+
+      const listEl = document.getElementById('accountHistoryList');
+      if (accountHistoryItems.length === 0) {
+        listEl.innerHTML = `
+          <div class="py-10 text-center text-slate-400 text-xs">
+            이번 달 계좌 입출금 내역이 없습니다.
+          </div>
+        `;
+        return;
+      }
+
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const formatShortDate = (dateStr) => {
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        const dayOfWeek = dayNames[new Date(y, m - 1, d).getDay()];
+        return `${m}월 ${d}일 (${dayOfWeek})`;
+      };
+
+      // 조회 전용(수정 불가) 최신순 카드 렌더링
+      listEl.innerHTML = accountHistoryItems.map(item => {
+        const isIncome = item.type === 'income';
+        const isAtm = item.type === 'atm';
+        const cat = findCategoryById(item.category, item.type || 'expense');
+
+        let typeBadge = '';
+        if (isAtm) {
+          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">ATM 인출 (계좌➔지갑)</span>`;
+        } else if (isIncome) {
+          const isCashInc = item.payment === '현금';
+          typeBadge = isCashInc
+            ? `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-amber-50 text-amber-700">현금 수입</span>`
+            : `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-50 text-emerald-700">계좌 입금</span>`;
+        } else {
+          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-medium bg-blue-50 text-blue-600">카드/계좌 출금</span>`;
+        }
+
+        const amountColorClass = isAtm
+          ? 'text-sky-600'
+          : (isIncome ? 'text-palette-green' : 'text-palette-red');
+
+        // 계좌 기준에서 ATM 인출은 계좌에서 돈이 빠져나간 것이므로 '- '로 표시
+        const amountSign = isIncome ? '+ ' : '- ';
+
+        return `
+          <div class="cursor-default select-none bg-slate-50/90 p-3 rounded-xl border ${isAtm ? 'border-sky-100 bg-sky-50/30' : 'border-slate-200/70'} flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl ${cat.color} flex-shrink-0 flex items-center justify-center text-base">
+                ${isAtm ? '<span>🏧</span>' : `<i class="ph ${cat.icon}"></i>`}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-xs text-slate-900 truncate">${item.title}</span>
+                  ${typeBadge}
+                </div>
+                <div class="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5 min-w-0">
+                  <span class="font-semibold text-slate-500 flex-shrink-0">${formatShortDate(item.date)}</span>
+                  <span>·</span>
+                  <span class="flex-shrink-0">${isAtm ? '현금 인출' : cat.name}</span>
+                  ${item.memo ? `<span class="truncate text-slate-400">· ${item.memo}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <div class="font-extrabold text-xs ${amountColorClass}">
+                ${amountSign}${formatEur(item.amount)}
+              </div>
+              <div class="text-[10px] text-slate-400">${formatKrw(item.amount)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // 💻 노트북 ↔ 데스크탑 데이터 백업(내보내기) 및 복원(불러오기)
+    // ==========================================
+    function exportEuroPocketData() {
+      const { totalCharged } = getCashPocketStats();
+      const backupPayload = {
+        app: 'EuroPocket',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        expenses: expenses,
+        categories: categories,
+        incomeCategories: incomeCategories,
+        exchangeRate: exchangeRate,
+        monthlyBudget: monthlyBudget,
+        cashWalletBase: cashWalletBase,
+        cashChargedV2: totalCharged,
+        cashBaseV3: cashWalletBase
+      };
+
+      const jsonStr = JSON.stringify(backupPayload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `europocket_backup_${todayStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerImportEuroPocketData() {
+      const fileInput = document.getElementById('importDataFileInput');
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.click();
+      }
+    }
+
+    function importEuroPocketData(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || !Array.isArray(data.expenses)) {
+            alert('올바른 유로포켓 백업 파일(.json)이 아닙니다.');
+            return;
+          }
+
+          expenses = data.expenses.map(item => ({
+            ...item,
+            type: item.type || 'expense'
+          }));
+          saveToStorage();
+
+          if (Array.isArray(data.categories) && data.categories.length > 0) {
+            categories = data.categories;
+          }
+          if (Array.isArray(data.incomeCategories) && data.incomeCategories.length > 0) {
+            incomeCategories = data.incomeCategories;
+          }
+          saveCategoriesToStorage();
+
+          if (typeof data.exchangeRate === 'number' && data.exchangeRate > 0) {
+            exchangeRate = data.exchangeRate;
+            localStorage.setItem('europocket_exchange_rate', exchangeRate);
+            document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
+          }
+
+          if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0) {
+            monthlyBudget = data.monthlyBudget;
+            localStorage.setItem('europocket_budget', monthlyBudget);
+          }
+
+          if (data.cashChargedV2 !== undefined && data.cashChargedV2 !== null) {
+            localStorage.setItem('europocket_cash_charged_v2', data.cashChargedV2);
+          }
+          if (data.cashBaseV3 !== undefined && data.cashBaseV3 !== null) {
+            cashWalletBase = Number(data.cashBaseV3);
+            localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+          } else if (typeof data.cashWalletBase === 'number') {
+            cashWalletBase = data.cashWalletBase;
+            localStorage.setItem('europocket_cash_base_v3', cashWalletBase);
+          }
+
+          tempCategories = JSON.parse(JSON.stringify(categories));
+          tempIncomeCategories = JSON.parse(JSON.stringify(incomeCategories));
+          document.getElementById('settingsRatePreview').innerText = exchangeRate.toLocaleString();
+          document.getElementById('settingsBudgetPreview').innerText = monthlyBudget.toLocaleString();
+
+          renderSettingsCategoryList();
+          renderCategoryChips();
+          renderUI();
+
+          alert(`✅ 유로포켓 데이터(내역 총 ${expenses.length}건)를 성공적으로 불러왔습니다!`);
+        } catch (err) {
+          alert('파일을 읽는 중 오류가 발생했습니다. 올바른 백업 파일인지 확인해 주세요.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Initialize App
+    window.onload = initData;
+  </script>
+</body>
+
+</html>
