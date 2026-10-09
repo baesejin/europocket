@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#F59E0B">
+  <meta name="theme-color" id="appThemeColor" content="#FFFFFF">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.json">
@@ -173,13 +173,27 @@
       <div id="searchKeywordSuggestions" class="hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2">
         <!-- Dynamically populated chips -->
       </div>
+
+      <!-- Search Mode Notice (Fixed right below search bar when searching) -->
+      <div id="searchNotice"
+        class="hidden mt-2 flex items-center justify-between bg-amber-50 border border-amber-200/70 px-3.5 py-2 rounded-xl text-xs text-amber-800">
+        <div class="flex items-center gap-1.5">
+          <i class="ph ph-funnel text-amber-600 text-sm"></i>
+          <span>검색 결과: <strong id="searchCount">0</strong>건 발견</span>
+        </div>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="checkbox" id="searchAllMonths" onchange="handleSearch()"
+            class="rounded text-amber-600 focus:ring-0">
+          <span class="text-[11px] text-amber-700">전체 달 포함</span>
+        </label>
+      </div>
     </header>
 
-    <!-- Fixed Summary & List Title Section -->
-    <div class="flex-shrink-0 px-5 pt-3.5 pb-2 space-y-3 bg-white border-b border-slate-100">
-      <!-- Budget / Income & Expense Summary Card -->
+    <!-- Scrollable Expense & Summary Content Area (Option 1: Scroll with List) -->
+    <main class="flex-1 overflow-y-auto px-5 pt-3.5 pb-24 custom-scrollbar">
+      <!-- Budget / Income & Expense Summary Card (Scrolls smoothly with list!) -->
       <div id="summaryCard"
-        class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg shadow-slate-900/10">
+        class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg shadow-slate-900/10 mb-3">
         <!-- Top Row: Expense vs Income -->
         <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-700/60">
           <!-- Expense Column -->
@@ -266,22 +280,8 @@
         </div>
       </div>
 
-      <!-- Search Mode Notice -->
-      <div id="searchNotice"
-        class="hidden flex items-center justify-between bg-amber-50 border border-amber-200/70 px-3.5 py-2 rounded-xl text-xs text-amber-800">
-        <div class="flex items-center gap-1.5">
-          <i class="ph ph-funnel text-amber-600 text-sm"></i>
-          <span>검색 결과: <strong id="searchCount">0</strong>건 발견</span>
-        </div>
-        <label class="flex items-center gap-1 cursor-pointer">
-          <input type="checkbox" id="searchAllMonths" onchange="handleSearch()"
-            class="rounded text-amber-600 focus:ring-0">
-          <span class="text-[11px] text-amber-700">전체 달 포함</span>
-        </label>
-      </div>
-
-      <!-- Expense/Income List Section Header (Fixed) -->
-      <div class="flex items-center justify-between text-xs font-semibold text-slate-500 px-1 pt-0.5">
+      <!-- Expense/Income List Section Header (Sticky under header while scrolling) -->
+      <div class="sticky top-0 bg-white/95 backdrop-blur-xs z-10 py-2 -mx-5 px-5 border-b border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500 mb-3">
         <div class="flex items-center gap-1.5">
           <span id="mainListTitleLabel">입출금 내역</span>
           <span id="itemCountLabel" class="text-[11px] font-bold text-slate-400">총 0건</span>
@@ -299,10 +299,7 @@
             class="px-2 py-0.5 rounded-md text-slate-500 hover:text-slate-700 transition">낮은금액순</button>
         </div>
       </div>
-    </div>
 
-    <!-- Scrollable Expense List Area -->
-    <main class="flex-1 overflow-y-auto px-5 pt-3 pb-24 custom-scrollbar">
       <!-- List Container -->
       <div id="expenseList" class="space-y-3">
         <!-- Dynamic Items inserted here -->
@@ -525,7 +522,7 @@
             <div class="pt-3 mt-1 border-t border-slate-100 text-center space-y-1">
               <div class="inline-flex items-center gap-1.5 text-xs font-extrabold text-slate-700">
                 <span>💛 EuroPocket (유로포켓)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.01.02</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 font-bold tracking-wide">v1.02.00</span>
               </div>
               <p class="text-[11px] text-slate-400 font-medium">
                 Designed by <span class="font-bold text-slate-600">@pocket.yield</span>
@@ -3129,6 +3126,7 @@
       if (!splash) return;
       setTimeout(() => {
         splash.style.opacity = '0';
+        document.getElementById('appThemeColor')?.setAttribute('content', '#FFFFFF');
         setTimeout(() => {
           splash.remove();
         }, 320);
