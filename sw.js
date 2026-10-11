@@ -6,7 +6,8 @@ const ASSETS_TO_CACHE = [
   './europocket_public.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './icon-512-maskable.png'
 ];
 
 self.addEventListener('install', (event) => {

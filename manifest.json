@@ -6,7 +6,7 @@
   "start_url": "./europocket_public.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F59E0B",
+  "background_color": "#000000",
   "orientation": "portrait",
   "lang": "ko",
   "icons": [
@@ -20,7 +20,13 @@
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
