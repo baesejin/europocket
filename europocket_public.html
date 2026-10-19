@@ -463,9 +463,9 @@
 
               <button type="button" onclick="closeSettingsModal(); openBudgetModal();"
                 class="p-3 rounded-xl border border-slate-200 hover:border-amber-400 bg-slate-50/60 text-left transition">
-                <div class="text-[11px] text-slate-400">🎯 월 목표 예산</div>
+                <div class="text-[11px] text-slate-400">🎯 월 목표 예산 (<span id="settingsBudgetMonthLabel">10월</span>)</div>
                 <div class="text-xs font-bold text-slate-800 mt-0.5 flex items-center justify-between">
-                  <span>€ <span id="settingsBudgetPreview">992</span></span>
+                  <span>€ <span id="settingsBudgetPreview">1,000</span></span>
                   <i class="ph ph-caret-right text-slate-400"></i>
                 </div>
               </button>
@@ -588,12 +588,20 @@
     <div id="budgetModal"
       class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl space-y-4">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">🎯</span>
-          <h3 class="text-base font-bold text-slate-900">월 목표 예산 설정</h3>
+        <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🎯</span>
+            <h3 class="text-base font-bold text-slate-900">월 목표 예산 설정</h3>
+            <span id="budgetModalMonthBadge"
+              class="text-xs font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">2026년 10월</span>
+          </div>
+          <button onclick="closeBudgetModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+            <i class="ph ph-x text-base"></i>
+          </button>
         </div>
-        <p class="text-xs text-slate-500 leading-relaxed">
-          한 달 동안 사용할 <b>목표 생활비 한도</b>(카드 지출 + 현금 지출 합산 기준)를 유로로 입력해 주세요.
+        <p id="budgetModalDesc" class="text-xs text-slate-500 leading-relaxed">
+          해당 월의 <b>목표 생활비 한도</b>(카드 지출 + 현금 지출 합산)를 유로로 입력해 주세요. (달마다 독립적으로 설정됩니다)
         </p>
         <div class="relative">
           <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">€</span>
@@ -1014,6 +1022,8 @@
 
     let currentDate = new Date();
     let exchangeRate = 1500;
+    let defaultMonthlyBudget = 1000.00;
+    let monthlyBudgets = {}; // { 'YYYY-MM': budgetAmount }
     let monthlyBudget = 1000.00; // 🎯 월 목표 예산 (배포용 기본값 € 1,000)
     let accountBaseBalance = 0.00; // 🏦 내 계좌 기본 잔액 (배포용 초기값 € 0.00)
     let cashWalletBase = 0.00; // 👛 내 현금 주머니 기준 원금 (배포용 초기값 € 0.00)
@@ -1023,6 +1033,20 @@
     let selectedCategory = 'mart';
     let selectedPayment = '카드';
     let editingExpenseId = null;
+
+    function getMonthKey(dateObj = currentDate) {
+      const y = dateObj.getFullYear();
+      const m = dateObj.getMonth() + 1;
+      return `${y}-${String(m).padStart(2, '0')}`;
+    }
+
+    function getMonthlyBudget(dateObj = currentDate) {
+      const key = getMonthKey(dateObj);
+      if (monthlyBudgets && typeof monthlyBudgets[key] === 'number' && !isNaN(monthlyBudgets[key])) {
+        return monthlyBudgets[key];
+      }
+      return defaultMonthlyBudget;
+    }
 
     // 배포용 초기 데이터 (완전 백지 상태 - 개인 내역 0건)
     const INITIAL_DATA = [];
@@ -1127,12 +1151,29 @@
         exchangeRate = 1500;
       }
 
-      // Load Monthly Target Budget
+      // Load Monthly Target Budget (달별 독립 예산 및 레거시 기본값 불러오기)
       const savedBudget = localStorage.getItem('europocket_pub_budget');
       if (savedBudget !== null) {
         const parsedBudget = parseFloat(savedBudget);
-        monthlyBudget = isNaN(parsedBudget) ? 1000.00 : parsedBudget;
+        defaultMonthlyBudget = isNaN(parsedBudget) ? 1000.00 : parsedBudget;
       }
+
+      const savedMonthlyBudgets = localStorage.getItem('europocket_pub_monthly_budgets');
+      if (savedMonthlyBudgets) {
+        try {
+          const parsed = JSON.parse(savedMonthlyBudgets);
+          if (parsed && typeof parsed === 'object') {
+            monthlyBudgets = parsed;
+          }
+        } catch (e) {
+          monthlyBudgets = {};
+        }
+      } else {
+        monthlyBudgets = {};
+        monthlyBudgets['2026-10'] = defaultMonthlyBudget;
+        localStorage.setItem('europocket_pub_monthly_budgets', JSON.stringify(monthlyBudgets));
+      }
+      monthlyBudget = getMonthlyBudget(currentDate);
 
       // Load Bank Account Base Balance
       const savedAccountBase = localStorage.getItem('europocket_pub_account_base');
@@ -1500,6 +1541,17 @@
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
       const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+
+      // 현재 선택된 월의 독립 예산 동기화
+      monthlyBudget = getMonthlyBudget(currentDate);
+      const settingsBudgetPreviewEl = document.getElementById('settingsBudgetPreview');
+      if (settingsBudgetPreviewEl) {
+        settingsBudgetPreviewEl.innerText = monthlyBudget.toLocaleString();
+      }
+      const settingsBudgetMonthLabel = document.getElementById('settingsBudgetMonthLabel');
+      if (settingsBudgetMonthLabel) {
+        settingsBudgetMonthLabel.innerText = `${month}월`;
+      }
 
       document.getElementById('currentMonthLabel').innerText = `${year}년 ${month}월`;
 
@@ -2067,8 +2119,13 @@
     function openSettingsModal(initialTab = 'expense', mode = 'full') {
       tempCategories = JSON.parse(JSON.stringify(categories));
       tempIncomeCategories = JSON.parse(JSON.stringify(incomeCategories));
+      monthlyBudget = getMonthlyBudget(currentDate);
       document.getElementById('settingsRatePreview').innerText = exchangeRate.toLocaleString();
       document.getElementById('settingsBudgetPreview').innerText = monthlyBudget.toLocaleString();
+      const settingsBudgetMonthLabel = document.getElementById('settingsBudgetMonthLabel');
+      if (settingsBudgetMonthLabel) {
+        settingsBudgetMonthLabel.innerText = `${currentDate.getMonth() + 1}월`;
+      }
 
       const modalTitle = document.getElementById('settingsModalTitle');
       const generalSection = document.getElementById('settingsGeneralSection');
@@ -2400,6 +2457,14 @@
 
     // Budget Modal
     function openBudgetModal() {
+      monthlyBudget = getMonthlyBudget(currentDate);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const badge = document.getElementById('budgetModalMonthBadge');
+      if (badge) badge.innerText = `${year}년 ${month}월`;
+      const desc = document.getElementById('budgetModalDesc');
+      if (desc) desc.innerHTML = `${year}년 ${month}월 <b>목표 생활비 한도</b>(카드 지출 + 현금 지출 합산)를 유로로 입력해 주세요. (달마다 독립적으로 설정됩니다)`;
+
       document.getElementById('settingBudgetAmount').value = monthlyBudget;
       document.getElementById('budgetModal').classList.remove('hidden');
     }
@@ -2408,9 +2473,11 @@
     }
     function saveBudget() {
       const val = parseFloat(document.getElementById('settingBudgetAmount').value);
-      if (val >= 0) {
+      if (!isNaN(val) && val >= 0) {
+        const key = getMonthKey(currentDate);
+        monthlyBudgets[key] = val;
         monthlyBudget = val;
-        localStorage.setItem('europocket_pub_budget', monthlyBudget);
+        localStorage.setItem('europocket_pub_monthly_budgets', JSON.stringify(monthlyBudgets));
         closeBudgetModal();
         renderUI();
       }
@@ -2845,13 +2912,15 @@
       const { totalCharged } = getCashPocketStats();
       const backupPayload = {
         app: 'EuroPocket',
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         expenses: expenses,
         categories: categories,
         incomeCategories: incomeCategories,
         exchangeRate: exchangeRate,
         monthlyBudget: monthlyBudget,
+        monthlyBudgets: monthlyBudgets,
+        defaultMonthlyBudget: defaultMonthlyBudget,
         accountBaseBalance: accountBaseBalance,
         cashWalletBase: cashWalletBase,
         cashChargedV2: totalCharged,
@@ -2913,18 +2982,32 @@
             document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
           }
 
+          if (data.monthlyBudgets && typeof data.monthlyBudgets === 'object') {
+            monthlyBudgets = data.monthlyBudgets;
+            localStorage.setItem('europocket_pub_monthly_budgets', JSON.stringify(monthlyBudgets));
+          } else {
+            monthlyBudgets = {};
+          }
+
+          if (typeof data.defaultMonthlyBudget === 'number' && data.defaultMonthlyBudget >= 0) {
+            defaultMonthlyBudget = data.defaultMonthlyBudget;
+            localStorage.setItem('europocket_pub_budget', defaultMonthlyBudget);
+          }
+
           if (typeof data.accountBaseBalance === 'number' && !isNaN(data.accountBaseBalance)) {
             accountBaseBalance = data.accountBaseBalance;
             localStorage.setItem('europocket_pub_account_base', accountBaseBalance);
-            if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0) {
-              monthlyBudget = data.monthlyBudget;
-              localStorage.setItem('europocket_pub_budget', monthlyBudget);
+            if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0 && typeof data.defaultMonthlyBudget !== 'number') {
+              defaultMonthlyBudget = data.monthlyBudget;
+              localStorage.setItem('europocket_pub_budget', defaultMonthlyBudget);
             }
           } else if (typeof data.monthlyBudget === 'number' && data.monthlyBudget >= 0) {
             // v1 백업 파일 호환: 기존 monthlyBudget에 저장되어 있던 계좌 원금을 accountBaseBalance로 복원
             accountBaseBalance = data.monthlyBudget;
             localStorage.setItem('europocket_pub_account_base', accountBaseBalance);
           }
+
+          monthlyBudget = getMonthlyBudget(currentDate);
 
           if (data.cashChargedV2 !== undefined && data.cashChargedV2 !== null) {
             localStorage.setItem('europocket_pub_cash_charged_v2', data.cashChargedV2);
@@ -2941,6 +3024,10 @@
           tempIncomeCategories = JSON.parse(JSON.stringify(incomeCategories));
           document.getElementById('settingsRatePreview').innerText = exchangeRate.toLocaleString();
           document.getElementById('settingsBudgetPreview').innerText = monthlyBudget.toLocaleString();
+          const settingsBudgetMonthLabel = document.getElementById('settingsBudgetMonthLabel');
+          if (settingsBudgetMonthLabel) {
+            settingsBudgetMonthLabel.innerText = `${currentDate.getMonth() + 1}월`;
+          }
 
           renderSettingsCategoryList();
           renderCategoryChips();
