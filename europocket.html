@@ -361,9 +361,9 @@
             </div>
             <div id="atmTransferBadge" class="hidden grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
               <button type="button" id="atmEditWithdrawBtn" onclick="setEditAtmDirection('withdraw')"
-                class="py-1.5 rounded-lg bg-white shadow-sm text-sky-700 transition">📤 계좌➔지갑</button>
+                class="py-1.5 rounded-lg bg-white shadow-sm text-sky-700 transition">계좌➔지갑</button>
               <button type="button" id="atmEditDepositBtn" onclick="setEditAtmDirection('deposit')"
-                class="py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">📥 지갑➔계좌</button>
+                class="py-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">지갑➔계좌</button>
             </div>
           </div>
         </div>
@@ -1744,9 +1744,9 @@
 
           let badgeHtml = '';
           if (isAtmW) {
-            badgeHtml = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">📤 계좌 ➔ 지갑</span>`;
+            badgeHtml = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">계좌➔지갑</span>`;
           } else if (isAtmD) {
-            badgeHtml = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-50 text-teal-700 border border-teal-200/70">📥 지갑 ➔ 계좌</span>`;
+            badgeHtml = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-50 text-teal-700 border border-teal-200/70">지갑➔계좌</span>`;
           } else {
             badgeHtml = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-medium ${item.payment === '카드' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-700'}">${item.payment}</span>`;
           }
@@ -2911,9 +2911,9 @@
 
         let typeBadge = '';
         if (isAtmW) {
-          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">📤 ATM 인출 (계좌➔지갑)</span>`;
+          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/70">계좌➔지갑</span>`;
         } else if (isAtmD) {
-          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-50 text-teal-700 border border-teal-200/70">📥 ATM 입금 (지갑➔계좌)</span>`;
+          typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-teal-50 text-teal-700 border border-teal-200/70">지갑➔계좌</span>`;
         } else if (isIncome) {
           typeBadge = `<span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-50 text-emerald-700">계좌 입금</span>`;
         } else {
