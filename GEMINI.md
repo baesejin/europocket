@@ -16,3 +16,4 @@
 3. **접두사가 없는 경우 (기본)**:
    - `europocket.html` (및 `index.html`)과 `europocket_public.html` **둘 다 동시에 수정**합니다.
    - 공통 기능, UI 개선, 스타일, 버그 수정을 두 버전에 모두 반영하되, 각 버전의 고유 특성(public의 클린 상태 vs private의 개인 데이터)은 안전하게 유지합니다.
+

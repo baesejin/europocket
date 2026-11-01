@@ -31,3 +31,4 @@ description: >-
   - 두 버전의 기능, UI, 버그 수정 등을 동시에 적용합니다.
   - 단, 각 버전의 고유 특성(public의 클린 초기데이터/`europocket_pub_*` 키, private의 개인 데이터/`europocket_*` 키)은 유지하면서 공통 로직과 화면 요소를 일치시킵니다.
   - `europocket.html` 수정 후 `index.html` 동기화를 잊지 않습니다.
+

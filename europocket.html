@@ -230,7 +230,7 @@
           class="mt-2.5 pt-2.5 border-t border-slate-700/60 flex items-center justify-between cursor-pointer group hover:opacity-95 transition">
           <div class="flex items-center gap-2">
             <span class="text-base group-hover:scale-110 transition-transform">🏦</span>
-            <span id="accountBalanceTitleLabel" class="text-xs font-semibold text-slate-200">내 계좌 잔액</span>
+            <span id="accountBalanceTitleLabel" class="text-xs font-semibold text-slate-200">10월 계좌 잔액</span>
           </div>
           <div class="flex items-center gap-2">
             <span id="accountBalanceEur" class="text-sm font-extrabold text-emerald-300">€ 0.00</span>
@@ -1140,18 +1140,26 @@
 
     // Load from LocalStorage
     function initData() {
-      // 1. Force Clean & Update for v1.0.4 (Fixes 1~9월 categories and ensures payment = '카드')
-      if (!localStorage.getItem('europocket_v104_force_clean')) {
-        localStorage.setItem('europocket_categories', JSON.stringify(DEFAULT_CATEGORIES));
-        localStorage.setItem('europocket_income_categories', JSON.stringify(DEFAULT_INCOME_CATEGORIES));
-        localStorage.setItem('europocket_expenses', JSON.stringify(INITIAL_DATA));
-        localStorage.setItem('europocket_exchange_rate', '1508');
-        localStorage.setItem('europocket_account_base', '6277.39');
-        localStorage.setItem('europocket_cash_base_v3', '0');
-        localStorage.setItem('europocket_v104_force_clean', 'true');
+      // 1. 사용자가 브라우저에서 직접 작성/수정한 거래 내역(expenses)을 최우선으로 온전하게 보존!
+      const savedExpenses = localStorage.getItem('europocket_expenses');
+      if (savedExpenses) {
+        try {
+          const parsed = JSON.parse(savedExpenses);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            expenses = parsed;
+          } else {
+            expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+          }
+        } catch (e) {
+          expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+        }
+      } else {
+        // 로컬스토리지가 완전히 비어있는 최초 방문 시에만 INITIAL_DATA 사용
+        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+        saveToStorage();
       }
 
-      // 2. Load Expense Categories
+      // 2. Load Expense Categories (기존 사용자 카테고리 보존)
       const savedCats = localStorage.getItem('europocket_categories');
       try {
         const parsed = savedCats ? JSON.parse(savedCats) : null;
@@ -1162,7 +1170,7 @@
         categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       }
 
-      // 3. Load Income Categories
+      // 3. Load Income Categories (기존 사용자 수입 카테고리 보존)
       const savedIncCats = localStorage.getItem('europocket_income_categories');
       try {
         const parsedInc = savedIncCats ? JSON.parse(savedIncCats) : null;
@@ -1175,52 +1183,20 @@
 
       saveCategoriesToStorage();
 
-      // 4. Load Transactions
-      const savedExpenses = localStorage.getItem('europocket_expenses');
-      try {
-        expenses = savedExpenses ? JSON.parse(savedExpenses) : JSON.parse(JSON.stringify(INITIAL_DATA));
-      } catch (e) {
-        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
-      }
-
-      // 5. Always sanitize: 1월~9월은 무조건 '카드', 10월 깨진 결제수단 정제
-      let needsSave = false;
-      if (!Array.isArray(expenses) || expenses.length === 0) {
-        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
-        needsSave = true;
-      }
-
+      // 4. item.type 기본값 보장
       expenses.forEach(item => {
         if (!item.type) item.type = 'expense';
-        if (item.date < '2026-10-01') {
-          if (item.payment !== '카드') {
-            item.payment = '카드';
-            needsSave = true;
-          }
-        } else {
-          if (item.payment === '카드' || !item.payment) {
-            item.payment = '카드';
-            needsSave = true;
-          } else if (item.payment === '현금') {
-            item.payment = '현금';
-            needsSave = true;
-          }
-        }
       });
 
-      if (needsSave) {
-        saveToStorage();
-      }
-
-      // 6. Load Exchange Rate
+      // 5. Load Exchange Rate
       const savedRate = localStorage.getItem('europocket_exchange_rate');
       exchangeRate = savedRate ? (parseFloat(savedRate) || 1508) : 1508;
 
-      // 7. Load Monthly Target Budget
+      // 6. Load Monthly Target Budget
       const savedBudget = localStorage.getItem('europocket_budget');
       monthlyBudget = (savedBudget !== null) ? (parseFloat(savedBudget) || 992.00) : 992.00;
 
-      // 8. Load Account Base Balance
+      // 7. Load Account Base Balance
       const savedAccountBase = localStorage.getItem('europocket_account_base');
       if (savedAccountBase !== null) {
         const parsedAccBase = parseFloat(savedAccountBase);
