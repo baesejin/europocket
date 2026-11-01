@@ -1026,7 +1026,134 @@
     let selectedPayment = '카드';
     let editingExpenseId = null;
 
-    // Initial data synced from europocket_backup_2026-10-09.json
+    // 2026년 1월 가계부 데이터 (2026-01_expenses.md 기준: 수입 7건, 지출 66건 = €2,245.65)
+    const JAN_2026_DATA = [
+      // 2026-01-30
+      { id: 1769783820000, type: 'expense', date: '2026-01-30', title: 'asiakauf', category: 'mart', amount: 7.65, payment: '카드', memo: '' },
+      { id: 1769762880000, type: 'expense', date: '2026-01-30', title: 'Starbucks', category: 'cafe', amount: 2.50, payment: '카드', memo: '' },
+      { id: 1769762821000, type: 'expense', date: '2026-01-30', title: 'FCB ticket', category: 'culture', amount: 42.50, payment: '카드', memo: '' },
+      { id: 1769762820000, type: 'expense', date: '2026-01-30', title: 'train', category: 'trans', amount: 51.98, payment: '카드', memo: '' },
+      // 2026-01-28
+      { id: 1769590200000, type: 'expense', date: '2026-01-28', title: "McDonald's", category: 'food', amount: 5.99, payment: '카드', memo: '' },
+      // 2026-01-27
+      { id: 1769508661000, type: 'expense', date: '2026-01-27', title: 'nahkauf', category: 'mart', amount: 1.94, payment: '카드', memo: '' },
+      { id: 1769508660000, type: 'expense', date: '2026-01-27', title: 'rewe', category: 'mart', amount: 1.33, payment: '카드', memo: '' },
+      { id: 1769508601000, type: 'expense', date: '2026-01-27', title: 'rewe', category: 'mart', amount: 6.95, payment: '카드', memo: '' },
+      { id: 1769508600000, type: 'expense', date: '2026-01-27', title: 'Starbucks', category: 'cafe', amount: 3.90, payment: '카드', memo: '' },
+      { id: 1769508540000, type: 'expense', date: '2026-01-27', title: 'kfc', category: 'food', amount: 9.99, payment: '카드', memo: '' },
+      // 2026-01-26
+      { id: 1769405580000, type: 'expense', date: '2026-01-26', title: 'penny', category: 'mart', amount: 5.77, payment: '카드', memo: '' },
+      // 2026-01-22
+      { id: 1769068560000, type: 'expense', date: '2026-01-22', title: 'café', category: 'cafe', amount: 0.90, payment: '카드', memo: '' },
+      { id: 1769068500000, type: 'expense', date: '2026-01-22', title: 'Starbucks', category: 'cafe', amount: 12.80, payment: '카드', memo: '' },
+      // 2026-01-21
+      { id: 1769036342000, type: 'expense', date: '2026-01-21', title: 'nahkauf', category: 'mart', amount: 2.41, payment: '카드', memo: '' },
+      { id: 1769036341000, type: 'expense', date: '2026-01-21', title: 'salmon sandwich', category: 'food', amount: 6.00, payment: '카드', memo: '' },
+      { id: 1769036340000, type: 'expense', date: '2026-01-21', title: 'food messe', category: 'food', amount: 15.00, payment: '카드', memo: '' },
+      { id: 1769015400000, type: 'income', date: '2026-01-21', title: 'global blue', category: 'inc_etc', amount: 6.97, payment: '카드', memo: '' },
+      { id: 1768986540000, type: 'expense', date: '2026-01-21', title: 'water', category: 'mart', amount: 0.54, payment: '카드', memo: '' },
+      { id: 1768986241000, type: 'expense', date: '2026-01-21', title: 'kfc France', category: 'food', amount: 19.05, payment: '카드', memo: '' },
+      { id: 1768986240000, type: 'expense', date: '2026-01-21', title: 'Eis cafe', category: 'cafe', amount: 9.50, payment: '카드', memo: '' },
+      { id: 1768986181000, type: 'expense', date: '2026-01-21', title: 'papa Africa', category: 'food', amount: 10.00, payment: '카드', memo: '' },
+      { id: 1768986180000, type: 'expense', date: '2026-01-21', title: 'Orly', category: 'trans', amount: 14.00, payment: '카드', memo: '' },
+      { id: 1768950001000, type: 'expense', date: '2026-01-21', title: 'subway', category: 'trans', amount: 5.10, payment: '카드', memo: '' },
+      { id: 1768950000000, type: 'expense', date: '2026-01-21', title: 'subway', category: 'trans', amount: 10.20, payment: '카드', memo: '' },
+      // 2026-01-20
+      { id: 1768905000000, type: 'expense', date: '2026-01-20', title: "McDonald's", category: 'food', amount: 10.99, payment: '카드', memo: '' },
+      { id: 1768872060000, type: 'expense', date: '2026-01-20', title: 'airport', category: 'food', amount: 9.72, payment: '카드', memo: '' },
+      { id: 1768863608000, type: 'expense', date: '2026-01-20', title: 'orly', category: 'trans', amount: 14.00, payment: '카드', memo: '' },
+      { id: 1768863607000, type: 'expense', date: '2026-01-20', title: 'stadium pommes', category: 'food', amount: 5.00, payment: '카드', memo: '' },
+      { id: 1768863606000, type: 'expense', date: '2026-01-20', title: 'stadium beer', category: 'food', amount: 8.00, payment: '카드', memo: '' },
+      { id: 1768863605000, type: 'expense', date: '2026-01-20', title: 'sports pub', category: 'food', amount: 27.10, payment: '카드', memo: '' },
+      { id: 1768863604000, type: 'expense', date: '2026-01-20', title: 'PSG shop', category: 'leisure', amount: 56.00, payment: '카드', memo: '' },
+      { id: 1768863603000, type: 'expense', date: '2026-01-20', title: 'Hotel Mercure Saint Ouen', category: 'etc', amount: 123.86, payment: '카드', memo: '' },
+      { id: 1768863602000, type: 'expense', date: '2026-01-20', title: 'stadium coffee', category: 'cafe', amount: 2.00, payment: '카드', memo: '' },
+      { id: 1768863601000, type: 'expense', date: '2026-01-20', title: 'mart', category: 'mart', amount: 4.23, payment: '카드', memo: '' },
+      { id: 1768863600000, type: 'expense', date: '2026-01-20', title: "McDonald's", category: 'food', amount: 12.40, payment: '카드', memo: '' },
+      // 2026-01-19
+      { id: 1768843020000, type: 'expense', date: '2026-01-19', title: 'food messe', category: 'food', amount: 51.00, payment: '카드', memo: '' },
+      { id: 1768816140000, type: 'expense', date: '2026-01-19', title: 'edeka', category: 'mart', amount: 7.67, payment: '카드', memo: '' },
+      // 2026-01-18
+      { id: 1768745460000, type: 'expense', date: '2026-01-18', title: 'Café', category: 'cafe', amount: 2.00, payment: '카드', memo: '' },
+      { id: 1768726380000, type: 'expense', date: '2026-01-18', title: 'backery', category: 'cafe', amount: 4.70, payment: '카드', memo: '' },
+      // 2026-01-17
+      { id: 1768690740000, type: 'expense', date: '2026-01-17', title: 'bakery lunch', category: 'cafe', amount: 8.20, payment: '카드', memo: '' },
+      // 2026-01-16
+      { id: 1768574160000, type: 'expense', date: '2026-01-16', title: 'Navigo', category: 'trans', amount: 2.55, payment: '카드', memo: '' },
+      { id: 1768518003000, type: 'expense', date: '2026-01-16', title: 'Kaffee', category: 'cafe', amount: 0.80, payment: '카드', memo: '' },
+      { id: 1768518002000, type: 'expense', date: '2026-01-16', title: 'nahkauf', category: 'mart', amount: 1.99, payment: '카드', memo: '' },
+      { id: 1768518001000, type: 'expense', date: '2026-01-16', title: "McDonald's", category: 'food', amount: 10.99, payment: '카드', memo: '' },
+      { id: 1768518000000, type: 'expense', date: '2026-01-16', title: 'nahkauf', category: 'mart', amount: 2.49, payment: '카드', memo: '' },
+      // 2026-01-15
+      { id: 1768431601000, type: 'expense', date: '2026-01-15', title: 'nahkauf', category: 'mart', amount: 1.79, payment: '카드', memo: '' },
+      { id: 1768431600000, type: 'expense', date: '2026-01-15', title: 'cancun', category: 'food', amount: 12.20, payment: '카드', memo: '' },
+      // 2026-01-14
+      { id: 1768387440000, type: 'expense', date: '2026-01-14', title: 'water', category: 'mart', amount: 2.04, payment: '카드', memo: '' },
+      { id: 1768387381000, type: 'expense', date: '2026-01-14', title: 'Starbucks', category: 'cafe', amount: 4.45, payment: '카드', memo: '' },
+      { id: 1768387380000, type: 'expense', date: '2026-01-14', title: 'beer', category: 'food', amount: 8.00, payment: '카드', memo: '' },
+      { id: 1768387321000, type: 'expense', date: '2026-01-14', title: 'tresor', category: 'culture', amount: 17.00, payment: '카드', memo: '' },
+      { id: 1768387320000, type: 'expense', date: '2026-01-14', title: 'kfc', category: 'food', amount: 12.98, payment: '카드', memo: '' },
+      { id: 1768387260000, type: 'expense', date: '2026-01-14', title: 'big bus london', category: 'etc', amount: 139.17, payment: '카드', memo: '' },
+      { id: 1768387200000, type: 'expense', date: '2026-01-14', title: "McDonald's", category: 'food', amount: 10.99, payment: '카드', memo: '' },
+      // 2026-01-13
+      { id: 1768311960000, type: 'expense', date: '2026-01-13', title: 'Starbucks', category: 'cafe', amount: 3.60, payment: '카드', memo: '' },
+      { id: 1768307340000, type: 'expense', date: '2026-01-13', title: 'sishi', category: 'food', amount: 10.00, payment: '카드', memo: '' },
+      { id: 1768301940000, type: 'expense', date: '2026-01-13', title: 'ibis München City West', category: 'etc', amount: 87.17, payment: '카드', memo: '' },
+      { id: 1768275600000, type: 'expense', date: '2026-01-13', title: 'Jägermeister', category: 'food', amount: 6.00, payment: '카드', memo: '' },
+      { id: 1768275540000, type: 'expense', date: '2026-01-13', title: 'club', category: 'culture', amount: 20.00, payment: '카드', memo: '' },
+      { id: 1768258809000, type: 'expense', date: '2026-01-13', title: 'dazn subscription', category: 'culture', amount: 34.99, payment: '카드', memo: '' },
+      { id: 1768258808000, type: 'expense', date: '2026-01-13', title: 'beer', category: 'food', amount: 5.00, payment: '카드', memo: '' },
+      { id: 1768258807000, type: 'expense', date: '2026-01-13', title: '식비', category: 'food', amount: 18.43, payment: '카드', memo: '' },
+      { id: 1768258806000, type: 'expense', date: '2026-01-13', title: 'dm', category: 'living', amount: 4.25, payment: '카드', memo: '' },
+      { id: 1768258805000, type: 'expense', date: '2026-01-13', title: 'alianz arena beer', category: 'food', amount: 7.90, payment: '카드', memo: '' },
+      { id: 1768258804000, type: 'expense', date: '2026-01-13', title: "McDonald's", category: 'food', amount: 5.99, payment: '카드', memo: '' },
+      { id: 1768258803000, type: 'expense', date: '2026-01-13', title: 'sandwich', category: 'food', amount: 1.59, payment: '카드', memo: '' },
+      { id: 1768258802000, type: 'expense', date: '2026-01-13', title: 'esso water', category: 'mart', amount: 2.94, payment: '카드', memo: '' },
+      { id: 1768258801000, type: 'expense', date: '2026-01-13', title: 'Le Crobag', category: 'cafe', amount: 7.50, payment: '카드', memo: '' },
+      { id: 1768258800000, type: 'expense', date: '2026-01-13', title: 'alianz arena wine', category: 'food', amount: 2.90, payment: '카드', memo: '' },
+      // 2026-01-12
+      { id: 1768236120000, type: 'income', date: '2026-01-12', title: 'delay compensation', category: 'inc_etc', amount: 18.50, payment: '카드', memo: '' },
+      { id: 1768196760000, type: 'expense', date: '2026-01-12', title: 'rossman', category: 'living', amount: 7.18, payment: '카드', memo: '' },
+      { id: 1768196701000, type: 'expense', date: '2026-01-12', title: 'alditalk', category: 'cat_1791280374039', amount: 8.99, payment: '카드', memo: '' },
+      { id: 1768196700000, type: 'expense', date: '2026-01-12', title: 'netto', category: 'mart', amount: 11.97, payment: '카드', memo: '' },
+      // 2026-01-11
+      { id: 1768095660000, type: 'expense', date: '2026-01-11', title: 'cloth', category: 'leisure', amount: 2.00, payment: '카드', memo: '' },
+      // 2026-01-08
+      { id: 1767894600000, type: 'expense', date: '2026-01-08', title: 'hoisin sauce', category: 'mart', amount: 3.50, payment: '카드', memo: '' },
+      { id: 1767871980000, type: 'expense', date: '2026-01-08', title: 'water', category: 'mart', amount: 0.54, payment: '카드', memo: '' },
+      { id: 1767871920000, type: 'expense', date: '2026-01-08', title: 'nahkauf', category: 'mart', amount: 6.79, payment: '카드', memo: '' },
+      { id: 1767826800000, type: 'expense', date: '2026-01-08', title: 'Intercity BER', category: 'etc', amount: 71.76, payment: '카드', memo: '' },
+      // 2026-01-07
+      { id: 1767773400000, type: 'expense', date: '2026-01-07', title: 'nahkauf', category: 'mart', amount: 3.58, payment: '카드', memo: '' },
+      { id: 1767773340000, type: 'expense', date: '2026-01-07', title: "McDonald's", category: 'food', amount: 12.99, payment: '카드', memo: '' },
+      { id: 1767772860000, type: 'income', date: '2026-01-07', title: 'tax correction', category: 'inc_fin', amount: 1.84, payment: '카드', memo: '' },
+      // 2026-01-06
+      { id: 1767712500000, type: 'expense', date: '2026-01-06', title: "McDonald's", category: 'food', amount: 9.99, payment: '카드', memo: '' },
+      { id: 1767683161000, type: 'expense', date: '2026-01-06', title: 'backwerk', category: 'cafe', amount: 5.75, payment: '카드', memo: '' },
+      { id: 1767683160000, type: 'expense', date: '2026-01-06', title: 'kfc', category: 'food', amount: 5.99, payment: '카드', memo: '' },
+      { id: 1767683101000, type: 'expense', date: '2026-01-06', title: 'tresor beer', category: 'food', amount: 8.00, payment: '카드', memo: '' },
+      { id: 1767683100000, type: 'expense', date: '2026-01-06', title: 'coffee', category: 'cafe', amount: 8.25, payment: '카드', memo: '' },
+      { id: 1767683041000, type: 'expense', date: '2026-01-06', title: 'döner', category: 'food', amount: 9.00, payment: '카드', memo: '' },
+      { id: 1767683040000, type: 'expense', date: '2026-01-06', title: 'tresor shot', category: 'food', amount: 13.50, payment: '카드', memo: '' },
+      // 2026-01-04
+      { id: 1767546000000, type: 'expense', date: '2026-01-04', title: 'kfc', category: 'food', amount: 21.47, payment: '카드', memo: '' },
+      { id: 1767534300000, type: 'expense', date: '2026-01-04', title: 'uber arena', category: 'food', amount: 29.90, payment: '카드', memo: '' },
+      // 2026-01-03
+      { id: 1767424080000, type: 'expense', date: '2026-01-03', title: 'Novotel Edinburgh Park', category: 'etc', amount: 595.18, payment: '카드', memo: '' },
+      { id: 1767411480000, type: 'expense', date: '2026-01-03', title: 'tresor', category: 'culture', amount: 25.00, payment: '카드', memo: '' },
+      { id: 1767411420000, type: 'expense', date: '2026-01-03', title: 'beer', category: 'food', amount: 5.00, payment: '카드', memo: '' },
+      // 2026-01-02
+      { id: 1767317880000, type: 'expense', date: '2026-01-02', title: 'Easyjet, rest', category: 'trans', amount: 240.03, payment: '카드', memo: '' },
+      { id: 1767317820000, type: 'expense', date: '2026-01-02', title: 'Edinburgh Hotel, Annemarie', category: 'etc', amount: 0.32, payment: '카드', memo: '' },
+      { id: 1767317760000, type: 'expense', date: '2026-01-02', title: 'Easyjet, Sejin', category: 'trans', amount: 100.40, payment: '카드', memo: '' },
+      { id: 1767317700000, type: 'income', date: '2026-01-02', title: 'from Annemarie', category: 'inc_allow', amount: 271.00, payment: '카드', memo: '' },
+      // 2026-01-01
+      { id: 1767308340000, type: 'income', date: '2026-01-01', title: 'interest', category: 'inc_fin', amount: 5.16, payment: '카드', memo: '' },
+      { id: 1767286980000, type: 'income', date: '2026-01-01', title: 'from dad', category: 'inc_allow', amount: 990.00, payment: '카드', memo: '' },
+      { id: 1767286860000, type: 'income', date: '2026-01-01', title: 'from last month', category: 'inc_etc', amount: 11867.46, payment: '카드', memo: '' },
+    ];
+
+    // Initial data synced from europocket_backup_2026-10-09.json + 2026-01 data
     const INITIAL_DATA = [
       { id: 1791471480113, type: 'income', date: '2026-10-08', title: 'exchange', category: 'inc_allow', amount: 1000, payment: '현금', memo: '' },
       { id: 1791363483685, type: 'expense', date: '2026-10-06', title: 'pizza', category: 'food', amount: 15, payment: '현금', memo: '' },
@@ -1048,6 +1175,7 @@
       { id: 1791212563254, type: 'income', date: '2026-10-01', title: '이자 2.5%', category: 'inc_fin', amount: 15.87, payment: '카드', memo: '' },
       { id: 4, type: 'expense', date: '2026-09-28', title: 'DM 드럭스토어', category: 'living', amount: 15.8, payment: '카드', memo: '세탁 세제, 샴푸' },
       { id: 5, type: 'expense', date: '2026-09-25', title: '학식 (Mensa)', category: 'food', amount: 4.5, payment: '현금', memo: '치킨 슈니첼' },
+      ...JAN_2026_DATA
     ];
 
     let expenses = [];
@@ -1169,6 +1297,17 @@
       } else {
         expenses = INITIAL_DATA;
         saveToStorage();
+      }
+
+      // Auto-migrate 2026-01 data into existing localStorage without losing user records
+      if (!localStorage.getItem('europocket_jan2026_migrated_v1')) {
+        const existingIds = new Set(expenses.map(i => i.id));
+        const missingJanItems = JAN_2026_DATA.filter(i => !existingIds.has(i.id));
+        if (missingJanItems.length > 0) {
+          expenses = [...expenses, ...missingJanItems];
+          saveToStorage();
+        }
+        localStorage.setItem('europocket_jan2026_migrated_v1', 'true');
       }
 
       // Load Exchange Rate
