@@ -1140,159 +1140,87 @@
 
     // Load from LocalStorage
     function initData() {
-            // Auto-migrate to clean v1.0.3 data (fixes broken 1~9月 categories & payment = '카드')
-      if (!localStorage.getItem('europocket_v103_clean_applied')) {
-        localStorage.setItem('europocket_expenses', JSON.stringify(INITIAL_DATA));
+      // 1. Force Clean & Update for v1.0.4 (Fixes 1~9월 categories and ensures payment = '카드')
+      if (!localStorage.getItem('europocket_v104_force_clean')) {
         localStorage.setItem('europocket_categories', JSON.stringify(DEFAULT_CATEGORIES));
         localStorage.setItem('europocket_income_categories', JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+        localStorage.setItem('europocket_expenses', JSON.stringify(INITIAL_DATA));
         localStorage.setItem('europocket_exchange_rate', '1508');
         localStorage.setItem('europocket_account_base', '6277.39');
         localStorage.setItem('europocket_cash_base_v3', '0');
-        localStorage.setItem('europocket_v103_clean_applied', 'true');
+        localStorage.setItem('europocket_v104_force_clean', 'true');
       }
 
-      if (!localStorage.getItem('europocket_backup_20261009_applied')) {
-        let shouldApplyBackup = false;
-        const rawExp = localStorage.getItem('europocket_expenses');
-        if (!rawExp) {
-          shouldApplyBackup = true;
-        } else {
-          try {
-            const parsedExp = JSON.parse(rawExp);
-            if (Array.isArray(parsedExp) && parsedExp.some(i => i.id === 10 && i.title === '10월 슈페어콘토 입금')) {
-              shouldApplyBackup = true;
-            }
-          } catch (e) {
-            shouldApplyBackup = true;
-          }
-        }
-
-        if (shouldApplyBackup) {
-          localStorage.setItem('europocket_expenses', JSON.stringify(INITIAL_DATA));
-          localStorage.setItem('europocket_categories', JSON.stringify(DEFAULT_CATEGORIES));
-          localStorage.setItem('europocket_income_categories', JSON.stringify(DEFAULT_INCOME_CATEGORIES));
-          localStorage.setItem('europocket_exchange_rate', '1508');
-          localStorage.setItem('europocket_account_base', '6277.39');
-          localStorage.setItem('europocket_cash_base_v3', '0');
-          localStorage.setItem('europocket_cash_charged_v2', '30');
-        }
-        localStorage.setItem('europocket_backup_20261009_applied', 'true');
-      }
-
-      // 1. Load Expense Categories
+      // 2. Load Expense Categories
       const savedCats = localStorage.getItem('europocket_categories');
-      if (savedCats) {
-        try {
-          const parsed = JSON.parse(savedCats);
-          categories = (Array.isArray(parsed) && parsed.length > 0)
-            ? parsed
-            : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-        } catch (e) {
-          categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
-        }
-      } else {
+      try {
+        const parsed = savedCats ? JSON.parse(savedCats) : null;
+        categories = (Array.isArray(parsed) && parsed.length > 0)
+          ? parsed
+          : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+      } catch (e) {
         categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       }
 
-      // Ensure '문화/여가' (ph-film-slate) is present and rename '기타'/'기타(공통)' to '기타지출'
-      categories.forEach(c => {
-        if (c.name === '기타' || c.name === '기타(공통)') {
-          c.name = '기타지출';
-        }
-      });
-      const existingCulture = categories.find(c => c.id === 'culture' || (c.name && c.name.includes('문화')));
-      if (existingCulture) {
-        if (existingCulture.icon !== 'ph-film-slate') {
-          existingCulture.icon = 'ph-film-slate';
-          existingCulture.color = 'bg-violet-100 text-violet-700';
-        }
-      } else {
-        const etcIdx = categories.findIndex(c => c.id === 'etc' || c.name === '기타지출');
-        const newCultureCat = { id: 'culture', name: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' };
-        if (etcIdx !== -1) {
-          categories.splice(etcIdx, 0, newCultureCat);
-        } else {
-          categories.push(newCultureCat);
-        }
-      }
-
-      // 2. Load Income Categories
+      // 3. Load Income Categories
       const savedIncCats = localStorage.getItem('europocket_income_categories');
-      if (savedIncCats) {
-        try {
-          const parsedInc = JSON.parse(savedIncCats);
-          incomeCategories = (Array.isArray(parsedInc) && parsedInc.length > 0)
-            ? parsedInc
-            : JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
-        } catch (e) {
-          incomeCategories = JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
-        }
-      } else {
+      try {
+        const parsedInc = savedIncCats ? JSON.parse(savedIncCats) : null;
+        incomeCategories = (Array.isArray(parsedInc) && parsedInc.length > 0)
+          ? parsedInc
+          : JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
+      } catch (e) {
         incomeCategories = JSON.parse(JSON.stringify(DEFAULT_INCOME_CATEGORIES));
       }
 
-      // Ensure '금융소득' (ph-trend-up) is present in Income Categories
-      const existingFin = incomeCategories.find(c => c.id === 'inc_fin' || (c.name && c.name.includes('금융')));
-      if (existingFin) {
-        if (existingFin.icon !== 'ph-trend-up' && existingFin.icon !== 'ph-coins') {
-          existingFin.icon = 'ph-trend-up';
-          existingFin.color = 'bg-amber-100 text-amber-700';
-        }
-      } else {
-        const incEtcIdx = incomeCategories.findIndex(c => c.id === 'inc_etc' || c.name === '기타수입');
-        const newFinCat = { id: 'inc_fin', name: '금융소득', icon: 'ph-trend-up', color: 'bg-amber-100 text-amber-700' };
-        if (incEtcIdx !== -1) {
-          incomeCategories.splice(incEtcIdx, 0, newFinCat);
-        } else {
-          incomeCategories.push(newFinCat);
-        }
-      }
-
-      // Save both category lists after both have been loaded & validated
       saveCategoriesToStorage();
 
-      // Load Transactions
+      // 4. Load Transactions
       const savedExpenses = localStorage.getItem('europocket_expenses');
-      if (savedExpenses) {
-        try {
-          expenses = JSON.parse(savedExpenses).map(item => ({
-            ...item,
-            type: item.type || 'expense'
-          }));
-        } catch (e) {
-          expenses = INITIAL_DATA;
+      try {
+        expenses = savedExpenses ? JSON.parse(savedExpenses) : JSON.parse(JSON.stringify(INITIAL_DATA));
+      } catch (e) {
+        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+      }
+
+      // 5. Always sanitize: 1월~9월은 무조건 '카드', 10월 깨진 결제수단 정제
+      let needsSave = false;
+      if (!Array.isArray(expenses) || expenses.length === 0) {
+        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+        needsSave = true;
+      }
+
+      expenses.forEach(item => {
+        if (!item.type) item.type = 'expense';
+        if (item.date < '2026-10-01') {
+          if (item.payment !== '카드') {
+            item.payment = '카드';
+            needsSave = true;
+          }
+        } else {
+          if (item.payment === '카드' || !item.payment) {
+            item.payment = '카드';
+            needsSave = true;
+          } else if (item.payment === '현금') {
+            item.payment = '현금';
+            needsSave = true;
+          }
         }
-      } else {
-        expenses = INITIAL_DATA;
+      });
+
+      if (needsSave) {
         saveToStorage();
       }
-      // Auto-migrate all 2026-01~09 data into existing localStorage without losing user records
-      if (!localStorage.getItem('europocket_2026_all_migrated_v2')) {
-        const existingIds = new Set(expenses.map(i => i.id));
-        const missingItems = INITIAL_DATA.filter(i => !existingIds.has(i.id));
-        if (missingItems.length > 0) {
-          expenses = [...expenses, ...missingItems];
-          saveToStorage();
-        }
-        localStorage.setItem('europocket_2026_all_migrated_v2', 'true');
-      }
 
-      // Load Exchange Rate
+      // 6. Load Exchange Rate
       const savedRate = localStorage.getItem('europocket_exchange_rate');
-      if (savedRate) {
-        exchangeRate = parseFloat(savedRate) || 1508;
-      } else {
-        exchangeRate = 1508;
-      }
+      exchangeRate = savedRate ? (parseFloat(savedRate) || 1508) : 1508;
 
-      // Load Monthly Target Budget
+      // 7. Load Monthly Target Budget
       const savedBudget = localStorage.getItem('europocket_budget');
-      if (savedBudget !== null) {
-        const parsedBudget = parseFloat(savedBudget);
-        monthlyBudget = isNaN(parsedBudget) ?€ 992.00 남음: parsedBudget;
-      }
+      monthlyBudget = (savedBudget !== null) ? (parseFloat(savedBudget) || 992.00) : 992.00;
 
-      // Load Bank Account Base Balance
+      // 8. Load Account Base Balance
       const savedAccountBase = localStorage.getItem('europocket_account_base');
       if (savedAccountBase !== null) {
         const parsedAccBase = parseFloat(savedAccountBase);
@@ -1301,8 +1229,6 @@
         accountBaseBalance = 6277.39;
       }
 
-      document.getElementById('headerExchangeRate').innerText = exchangeRate.toLocaleString();
-      renderCategoryChips();
       renderUI();
     }
 
