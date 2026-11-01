@@ -3,7 +3,7 @@
   "name": "유로포켓 (EuroPocket)",
   "short_name": "유로포켓",
   "description": "독일 유학생 심플 가계부 — Designed by @pocket.yield",
-  "start_url": "./europocket_public.html",
+  "start_url": "./europocket.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
