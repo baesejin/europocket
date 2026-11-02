@@ -916,14 +916,14 @@
             </button>
           </div>
           <p class="text-[10px] text-slate-400 leading-relaxed">
-            * <b>[계좌 기본 잔액 + 카드/계좌 수입 - 카드/계좌 지출 - ATM 인출 + ATM 입금]</b>으로 자동 계산됩니다.
+            * <b>[전월 계좌 잔액(Base) + 당월 계좌 내역 합계(수입+ATM입금 - 카드지출-ATM인출)]</b>로 자동 계산됩니다.
           </p>
         </div>
 
         <!-- Count & Sort Filter Info -->
         <div class="flex items-center justify-between pt-3 pb-1.5 px-1 flex-shrink-0">
           <div class="flex items-center gap-1.5">
-            <span id="accountModalHistoryMonthLabel" class="text-[11px] font-bold text-slate-500">이번 달 계좌 변동 내역</span>
+            <span id="accountModalHistoryMonthLabel" class="text-[11px] font-bold text-slate-500">이번 달 계좌 내역</span>
             <span id="accountModalCountLabel" class="text-[11px] font-bold text-slate-400">총 0건</span>
           </div>
           <div class="inline-flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold">
@@ -2079,9 +2079,17 @@
       saveToStorage();
       closeAddModal();
 
-      const targetDate = new Date(date);
-      currentDate = targetDate;
+      const dateParts = date.split('-');
+      if (dateParts.length >= 2) {
+        currentDate = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, 1);
+      } else {
+        currentDate = new Date(date);
+      }
       handleSearch();
+      const accModal = document.getElementById('accountHistoryModal');
+      if (accModal && !accModal.classList.contains('hidden')) {
+        renderAccountHistoryModal();
+      }
     }
 
     function deleteCurrentEditingExpense() {
@@ -2802,12 +2810,13 @@
 
     function renderAccountHistoryModal() {
       const month = currentDate.getMonth() + 1;
+      const prevMonth = month === 1 ? 12 : month - 1;
       const modalTitle = document.getElementById('accountModalTitle');
       if (modalTitle) modalTitle.innerText = `${month}월 계좌 잔액 및 입출금 내역`;
       const subLabel = document.getElementById('accountModalBalanceSubLabel');
-      if (subLabel) subLabel.innerText = `${month}월 말 계좌 잔액`;
+      if (subLabel) subLabel.innerText = `${month}월 계좌 잔액`;
       const historyMonthLabel = document.getElementById('accountModalHistoryMonthLabel');
-      if (historyMonthLabel) historyMonthLabel.innerText = `${month}월 계좌 변동 내역`;
+      if (historyMonthLabel) historyMonthLabel.innerText = `${month}월 계좌 내역`;
 
       const {
         accountIncomeTotal,
@@ -2825,17 +2834,43 @@
 
       document.getElementById('accountModalRemainingKrw').innerText = formatKrw(remaining);
       const baseTitle = document.getElementById('accountModalBaseTitle');
-      if (baseTitle) baseTitle.innerText = '이월 잔액';
+      if (baseTitle) baseTitle.innerText = `${prevMonth}월 계좌 잔액 (Base)`;
       document.getElementById('accountModalBudgetBaseEur').innerText = formatEur(prevRemaining);
       document.getElementById('accountModalIncomeEur').innerText = '+ ' + formatEur(accountIncomeTotal);
       document.getElementById('accountModalOutflowEur').innerText = '- ' + formatEur(accountOutflowTotal);
       document.getElementById('accountModalCountLabel').innerText = `총 ${accountHistoryItems.length}건`;
 
       const listEl = document.getElementById('accountHistoryList');
+      const hasPrevBase = Math.abs(prevRemaining) > 0.004;
+      const baseCarryOverCardHtml = hasPrevBase ? `
+        <div class="cursor-default select-none bg-emerald-50/70 p-3 rounded-xl border border-emerald-200/80 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex-shrink-0 flex items-center justify-center text-base">
+              <span>🏦</span>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs text-slate-900 truncate">${prevMonth}월 계좌 잔액 (Base)</span>
+                <span class="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-100 text-emerald-800">전월 잔액 이월</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5 min-w-0">
+                <span class="font-semibold text-emerald-700 flex-shrink-0">${month}월 1일 기준 시작 잔액</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="font-extrabold text-xs ${prevRemaining >= 0 ? 'text-palette-green' : 'text-palette-red'}">
+              ${prevRemaining >= 0 ? '+ ' : '- '}${formatEur(Math.abs(prevRemaining))}
+            </div>
+            <div class="text-[10px] text-slate-400">${formatKrw(prevRemaining)}</div>
+          </div>
+        </div>
+      ` : '';
+
       if (accountHistoryItems.length === 0) {
-        listEl.innerHTML = `
+        listEl.innerHTML = baseCarryOverCardHtml + `
           <div class="py-10 text-center text-slate-400 text-xs">
-            ${month}월 계좌 입출금 내역이 없습니다.
+            ${month}월 계좌 내역이 없습니다.
           </div>
         `;
         return;
@@ -2865,8 +2900,8 @@
         return (b.id || 0) - (a.id || 0);
       });
 
-      // 정렬 기준(최신순 / 높은금액순 / 낮은금액순)에 맞춰 계좌 변동 내역 카드 렌더링
-      listEl.innerHTML = sortedAccountItems.map(item => {
+      // 정렬 기준(최신순 / 높은금액순 / 낮은금액순)에 맞춰 계좌 내역 카드 렌더링
+      listEl.innerHTML = baseCarryOverCardHtml + sortedAccountItems.map(item => {
         const isIncome = item.type === 'income';
         const isAtmW = isAtmWithdraw(item);
         const isAtmD = isAtmDeposit(item);
