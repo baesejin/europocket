@@ -954,7 +954,7 @@
       { id: 'food', name: '외식/식사', icon: 'ph-fork-knife', color: 'bg-orange-100 text-orange-700' },
       { id: 'cafe', name: '카페/베이커리', icon: 'ph-coffee', color: 'bg-amber-100 text-amber-700' },
       { id: 'rent', name: '방값/고정비', icon: 'ph-house', color: 'bg-blue-100 text-blue-700' },
-      { id: 'living', name: '생필품/DM', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
+      { id: 'living', name: '생필품/뷰티', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
       { id: 'trans', name: '교통/기차', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
       { id: 'leisure', name: '의류/패션', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
       { id: 'culture', name: '문화/여가', icon: 'ph-film-slate', color: 'bg-violet-100 text-violet-700' },
@@ -992,7 +992,7 @@
       { id: 12, group: 'living', label: '술자리/모임', icon: 'ph-beer-bottle', color: 'bg-yellow-100 text-yellow-700' },
       { id: 13, group: 'living', label: '방값/고정비', icon: 'ph-house', color: 'bg-blue-100 text-blue-700' },
       { id: 14, group: 'living', label: '공과금/전기', icon: 'ph-lightning', color: 'bg-yellow-100 text-yellow-700' },
-      { id: 15, group: 'living', label: '생필품/DM', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
+      { id: 15, group: 'living', label: '생필품/뷰티', icon: 'ph-drop', color: 'bg-pink-100 text-pink-700' },
       { id: 16, group: 'living', label: '교통/기차', icon: 'ph-train', color: 'bg-cyan-100 text-cyan-700' },
       { id: 17, group: 'living', label: '통신/구독', icon: 'ph-device-mobile', color: 'bg-teal-100 text-teal-700' },
       { id: 18, group: 'living', label: '의류/패션', icon: 'ph-t-shirt', color: 'bg-purple-100 text-purple-700' },
@@ -1046,10 +1046,13 @@
         categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       }
 
-      // Ensure '문화/여가' (ph-film-slate) is present and rename '기타'/'기타(공통)' to '기타지출'
+      // Ensure '문화/여가' (ph-film-slate) is present and rename '기타'/'기타(공통)' to '기타지출', '생필품/DM' to '생필품/뷰티'
       categories.forEach(c => {
         if (c.name === '기타' || c.name === '기타(공통)') {
           c.name = '기타지출';
+        }
+        if (c.id === 'living' && (c.name === '생필품' || c.name === '생필품/DM' || c.name === '생필품/dm')) {
+          c.name = '생필품/뷰티';
         }
       });
       const existingCulture = categories.find(c => c.id === 'culture' || (c.name && c.name.includes('문화')));
