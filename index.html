@@ -1211,6 +1211,20 @@
         accountBaseBalance = 6277.39;
       }
 
+      // 8. Auto-navigate to latest month with data if current month has 0 items (e.g. show October instead of empty November)
+      if (expenses && expenses.length > 0) {
+        const curMonthStr = currentDate.getFullYear() + "-" + String(currentDate.getMonth() + 1).padStart(2, "0");
+        const hasCurrentMonthItems = expenses.some(i => i.date && i.date.startsWith(curMonthStr));
+        if (!hasCurrentMonthItems) {
+          const sorted = [...expenses].filter(i => i.date).sort((a, b) => b.date.localeCompare(a.date));
+          if (sorted.length > 0) {
+            const parts = sorted[0].date.split("-");
+            if (parts.length === 3) {
+              currentDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+            }
+          }
+        }
+      }
       renderUI();
     }
 
