@@ -1150,6 +1150,8 @@
           item.date === '2026-04-01' || item.date === '2026-05-01' ||
           item.date === '2026-06-01' || item.date === '2026-07-01' ||
           item.date === '2026-08-01' || item.date === '2026-09-01' ||
+          item.date === '2026-10-01' ||
+          item.id === 1791212500000 ||
           item.id === 1769931180001 || item.id === 1772362440001 ||
           item.id === 1775026500001 || item.id === 1777635300002 ||
           item.id === 1780270380000 || item.id === 1782863700000 ||
@@ -1167,18 +1169,8 @@
         try {
           const parsed = JSON.parse(savedExpenses);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // (A) 2026-10-01 이후(사용자가 직접 수기로 작성/수정한 내역) 최우선 보존
-            const octAndLater = parsed.filter(item => item.date >= '2026-10-01');
-            // (복구) f6ffcda 버전에서 제거/이관되었던 10월 'from last month' 항목을 원래 금액(6277.39 + 이관된 수기 조정분)으로 1회 복원
-            if (!localStorage.getItem('europocket_oct_flm_restored_v1')) {
-              const hasOctFlm = octAndLater.some(item => item.date && item.date.startsWith('2026-10') && item.type === 'income' && item.title && item.title.trim().toLowerCase() === 'from last month');
-              if (!hasOctFlm) {
-                const migratedAdj = parseFloat(localStorage.getItem('europocket_balance_adjustment') || '0') || 0;
-                octAndLater.push({ id: 1791212500000, type: 'income', date: '2026-10-01', title: 'from last month', category: 'inc_etc', amount: Number((6277.39 + migratedAdj).toFixed(2)), payment: '카드', memo: '' });
-              }
-              localStorage.removeItem('europocket_balance_adjustment');
-              localStorage.setItem('europocket_oct_flm_restored_v1', '1');
-            }
+            // (A) 2026-10-01 이후(사용자가 직접 수기로 작성/수정한 내역) 최우선 보존 (10월 FLM 더미 제외)
+            const octAndLater = parsed.filter(item => item.date >= '2026-10-01' && !isFLMToRemove(item));
             const cleanOctMap = new Map(INITIAL_DATA.filter(i => i.date >= '2026-10-01').map(i => [i.id, i]));
             octAndLater.forEach(item => {
               item.type = item.type || 'expense';
@@ -1288,35 +1280,7 @@
       const savedBudget = localStorage.getItem('europocket_budget');
       monthlyBudget = (savedBudget !== null) ? (parseFloat(savedBudget) || 992.00) : 992.00;
 
-      // 7. 10월 계좌 내역에 9월 말 잔액('from last month': 6277.39) 이월 항목 보장
-      // (1~10월은 해당 월의 '계좌 내역'을 모두 더한 값이 곧 해당 월의 계좌 잔액이 되도록 통일)
-      const octItems = expenses.filter(item => item.date && item.date.startsWith('2026-10'));
-      const hasOctFromLastMonth = octItems.some(item =>
-        item.type === 'income' &&
-        item.title &&
-        item.title.trim().toLowerCase() === 'from last month'
-      );
-      if (!hasOctFromLastMonth) {
-        const octInflow = octItems
-          .filter(item => (item.type === 'income' && (item.payment || '카드') !== '현금') || (item.type === 'atm' && item.category === 'atm_deposit'))
-          .reduce((s, i) => s + Number(i.amount), 0);
-        const octOutflow = octItems
-          .filter(item => ((item.type || 'expense') === 'expense' && (item.payment || '카드') !== '현금') || (item.type === 'atm' && item.category === 'atm_withdraw'))
-          .reduce((s, i) => s + Number(i.amount), 0);
-        if (octInflow - octOutflow < 0) {
-          expenses.push({
-            id: 1791212500000,
-            type: 'income',
-            date: '2026-10-01',
-            title: 'from last month',
-            category: 'inc_etc',
-            amount: 6277.39,
-            payment: '카드',
-            memo: ''
-          });
-          saveToStorage();
-        }
-      }
+      // 7. 계좌 잔액 이월 체인: 10월 포함 전월 잔액 이월로 연동 완료되어 더미 FLM 불필요
       accountBaseBalance = 0;
 
       renderUI();
@@ -2848,7 +2812,7 @@
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
       const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-      const isCarryOverActive = (year > 2026) || (year === 2026 && ((month >= 2 && month <= 9) || month >= 11));
+      const isCarryOverActive = (year > 2026) || (year === 2026 && month >= 2);
 
       // 1. 당월 계좌 내역
       const monthItems = expenses.filter(item => item.date && item.date.startsWith(monthKey));
@@ -2875,8 +2839,12 @@
       let prevRemaining = 0;
       let remaining = 0;
 
-      if (year === 2026 && (month >= 2 && month <= 9)) {
-        // 2026-02 ~ 2026-09: carry over cumulative account balance from 2026-01-01
+      if (!isCarryOverActive) {
+        // 2026-01: 시작 기준 월 (1월 1일 from last month 11,867.46 포함 당월 실시간 합산)
+        prevRemaining = 0;
+        remaining = Number((accountIncomeTotal - accountOutflowTotal).toFixed(2));
+      } else {
+        // 2026-02부터: 2026-01-01부터 전월 말까지의 계좌 내역(전월 최종 계좌 잔액)을 Base로 누적 합산
         const prevItems = expenses.filter(item => item.date && item.date >= '2026-01-01' && item.date.slice(0, 7) < monthKey);
         const prevInflow = prevItems
           .filter(isAccountInflowItem)
@@ -2885,23 +2853,6 @@
           .filter(isAccountOutflowItem)
           .reduce((sum, item) => sum + Number(item.amount), 0);
         prevRemaining = Number((prevInflow - prevOutflow).toFixed(2));
-        remaining = Number((prevRemaining + accountIncomeTotal - accountOutflowTotal).toFixed(2));
-      } else if (!isCarryOverActive) {
-        // 2026-01, 2026-10: realtime balance from current month account items
-        prevRemaining = 0;
-        remaining = Number((accountIncomeTotal - accountOutflowTotal).toFixed(2));
-      } else {
-        // 2026년 11월부터: 10월의 계좌 잔액(2026-10-01 이후 전월 말까지의 계좌 내역 총합)을 Base로 하여 계산 시작
-        const prevItems = expenses.filter(item => item.date && item.date >= '2026-10-01' && item.date.slice(0, 7) < monthKey);
-        const prevInflow = prevItems
-          .filter(isAccountInflowItem)
-          .reduce((sum, item) => sum + Number(item.amount), 0);
-        const prevOutflow = prevItems
-          .filter(isAccountOutflowItem)
-          .reduce((sum, item) => sum + Number(item.amount), 0);
-        prevRemaining = Number((prevInflow - prevOutflow).toFixed(2));
-
-        // 당월 최종 계좌 잔액 = 전월 계좌 잔액(Base) + 당월 계좌 입금 - 당월 계좌 출금
         remaining = Number((prevRemaining + accountIncomeTotal - accountOutflowTotal).toFixed(2));
       }
 
@@ -2979,32 +2930,17 @@
         return;
       }
 
-      // 해당 월의 'from last month' 이월 항목이 있으면 그 금액을 보정하고, 없으면 1일자 이월/조정 항목으로 반영하여
-      // 언제나 '계좌 내역'의 합계가 곧 실시간 계좌 잔액이 되도록 유지
-      const baseMonthKey = ((year > 2026) || (year === 2026 && month >= 11)) ? '2026-10' : monthKey;
-      const fromLastIdx = expenses.findIndex(item =>
-        item.date &&
-        item.date.startsWith(baseMonthKey) &&
-        item.type === 'income' &&
-        (item.payment || '카드') !== '현금' &&
-        item.title &&
-        item.title.trim().toLowerCase() === 'from last month'
-      );
-
-      if (fromLastIdx !== -1) {
-        expenses[fromLastIdx].amount = Number((Number(expenses[fromLastIdx].amount) + diff).toFixed(2));
-      } else {
-        expenses.push({
-          id: Date.now(),
-          type: diff >= 0 ? 'income' : 'expense',
-          date: `${baseMonthKey}-01`,
-          title: 'from last month',
-          category: diff >= 0 ? 'inc_etc' : 'etc',
-          amount: Math.abs(diff),
-          payment: '카드',
-          memo: '계좌 잔액 맞춤'
-        });
-      }
+      // 직접 입력한 목표 잔액과의 차액(diff)을 1일자 잔액 조정 항목으로 반영하여 실시간 계좌 잔액 유지
+      expenses.push({
+        id: Date.now(),
+        type: diff >= 0 ? 'income' : 'expense',
+        date: `${monthKey}-01`,
+        title: '잔액 조정',
+        category: diff >= 0 ? 'inc_etc' : 'etc',
+        amount: Math.abs(diff),
+        payment: '카드',
+        memo: '계좌 잔액 맞춤'
+      });
 
       saveToStorage();
       renderUI();
