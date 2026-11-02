@@ -1157,60 +1157,54 @@
           item.id === 1780270380000 || item.id === 1782863700000 ||
           item.id === 1785621540001 || item.id === 1788278220000
         );
-      const janToSepInitial = JSON.parse(JSON.stringify(INITIAL_DATA))
-        .filter(item => item.date < '2026-10-01' && !isFLMToRemove(item));
-      janToSepInitial.forEach(item => {
-        item.type = item.type || 'expense';
-        item.payment = '카드';
-      });
-
       const savedExpenses = localStorage.getItem('europocket_expenses');
       if (savedExpenses) {
         try {
           const parsed = JSON.parse(savedExpenses);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            // (A) 2026-10-01 이후(사용자가 직접 수기로 작성/수정한 내역) 최우선 보존 (10월 FLM 더미 제외)
-            const octAndLater = parsed.filter(item => item.date >= '2026-10-01' && !isFLMToRemove(item));
-            const cleanOctMap = new Map(INITIAL_DATA.filter(i => i.date >= '2026-10-01').map(i => [i.id, i]));
-            octAndLater.forEach(item => {
+            // (A) 더미 FLM 및 구 프로토타입 더미(id 4, 5) 제외
+            let loaded = parsed.filter(item => !isFLMToRemove(item) && item.id !== 4 && item.id !== 5);
+
+            // (B) 혹시 1~9월 데이터가 아예 없는 경우(최초 10월만 있던 사용자)에만 INITIAL_DATA에서 1회 시드
+            const hasJanToSep = loaded.some(item => item.date && item.date < '2026-10-01');
+            if (!hasJanToSep) {
+              const janToSepSeed = JSON.parse(JSON.stringify(INITIAL_DATA))
+                .filter(item => item.date < '2026-10-01' && !isFLMToRemove(item));
+              janToSepSeed.forEach(item => {
+                item.type = item.type || 'expense';
+                item.payment = item.payment || '카드';
+              });
+              loaded = [...loaded, ...janToSepSeed];
+            }
+
+            // (C) 깨진 한글 인코딩(\uFFFD)이 남아있는 경우에만 INITIAL_DATA 원본 참조 복원 (사용자가 수정한 내역은 100% 보존)
+            const cleanRefMap = new Map(INITIAL_DATA.map(i => [i.id, i]));
+            loaded.forEach(item => {
               item.type = item.type || 'expense';
-              const cleanRef = cleanOctMap.get(item.id);
+              const cleanRef = cleanRefMap.get(item.id);
               if (cleanRef) {
-                if (!item.payment || item.payment.includes('?') || item.payment.includes('\uFFFD')) {
+                if (!item.payment || item.payment.includes('\uFFFD')) {
                   item.payment = cleanRef.payment;
                 }
-                if (item.title && (item.title.includes('?') || item.title.includes('\uFFFD'))) {
+                if (item.title && item.title.includes('\uFFFD')) {
                   item.title = cleanRef.title;
                 }
               }
             });
 
-            // (B) 2026-01 ~ 2026-09 내역(604건) 병합 복원 (구 프로토타입 더미 id 4, 5 제외)
-            const initialIds = new Set(janToSepInitial.map(i => i.id));
-            const userAddedJanToSep = parsed.filter(item =>
-              item.date < '2026-10-01' &&
-              !initialIds.has(item.id) && !isFLMToRemove(item) &&
-              item.id !== 4 &&
-              item.id !== 5
-            ).map(item => ({
-              ...item,
-              type: item.type || 'expense',
-              payment: '카드'
-            }));
-
-            expenses = [...octAndLater, ...janToSepInitial, ...userAddedJanToSep];
+            expenses = loaded;
             saveToStorage();
           } else {
-            expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+            expenses = JSON.parse(JSON.stringify(INITIAL_DATA)).filter(item => !isFLMToRemove(item));
             saveToStorage();
           }
         } catch (e) {
-          expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+          expenses = JSON.parse(JSON.stringify(INITIAL_DATA)).filter(item => !isFLMToRemove(item));
           saveToStorage();
         }
       } else {
         // 로컬스토리지가 완전히 비어있는 최초 방문 시에만 INITIAL_DATA 사용
-        expenses = JSON.parse(JSON.stringify(INITIAL_DATA));
+        expenses = JSON.parse(JSON.stringify(INITIAL_DATA)).filter(item => !isFLMToRemove(item));
         saveToStorage();
       }
 
