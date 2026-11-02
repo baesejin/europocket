@@ -267,6 +267,8 @@
         <div class="inline-flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold">
           <button type="button" id="mainSortLatestBtn" onclick="setMainSortMode('latest')"
             class="px-2 py-0.5 rounded-md bg-white text-slate-800 shadow-xs transition">최신순</button>
+          <button type="button" id="mainSortOldestBtn" onclick="setMainSortMode('oldest')"
+            class="px-2 py-0.5 rounded-md text-slate-500 hover:text-slate-700 transition">과거순</button>
           <button type="button" id="mainSortHighBtn" onclick="setMainSortMode('amount_desc')"
             class="px-2 py-0.5 rounded-md text-slate-500 hover:text-slate-700 transition">높은금액순</button>
           <button type="button" id="mainSortLowBtn" onclick="setMainSortMode('amount_asc')"
@@ -923,6 +925,8 @@
           <div class="inline-flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold">
             <button type="button" id="accSortLatestBtn" onclick="setAccountSortMode('latest')"
               class="px-2 py-0.5 rounded-md bg-white text-slate-800 shadow-xs transition">최신순</button>
+            <button type="button" id="accSortOldestBtn" onclick="setAccountSortMode('oldest')"
+              class="px-2 py-0.5 rounded-md text-slate-500 hover:text-slate-700 transition">과거순</button>
             <button type="button" id="accSortHighBtn" onclick="setAccountSortMode('amount_desc')"
               class="px-2 py-0.5 rounded-md text-slate-500 hover:text-slate-700 transition">높은금액순</button>
             <button type="button" id="accSortLowBtn" onclick="setAccountSortMode('amount_asc')"
@@ -1648,7 +1652,7 @@
     }
 
     let mainTypeFilter = 'all'; // 'all' | 'expense' | 'income'
-    let mainSortMode = 'latest'; // 'latest' | 'amount_desc' | 'amount_asc'
+    let mainSortMode = 'latest'; // 'latest' | 'oldest' | 'amount_desc' | 'amount_asc'
 
     // Main Render
     function renderUI(filteredList = null) {
@@ -1677,9 +1681,13 @@
       if (!isSearchActive) {
         displayList = expenses.filter(item => item.date.startsWith(monthKey));
         displayList.sort((a, b) => {
-          const dateDiff = new Date(b.date) - new Date(a.date);
+          const dateDiff = mainSortMode === 'oldest'
+            ? new Date(a.date) - new Date(b.date)
+            : new Date(b.date) - new Date(a.date);
           if (dateDiff !== 0) return dateDiff;
-          return (b.id || 0) - (a.id || 0);
+          return mainSortMode === 'oldest'
+            ? (a.id || 0) - (b.id || 0)
+            : (b.id || 0) - (a.id || 0);
         });
       }
 
@@ -1884,7 +1892,9 @@
             groupedByDate[item.date].push(item);
           });
 
-          const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+          const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+            return mainSortMode === 'oldest' ? new Date(a) - new Date(b) : new Date(b) - new Date(a);
+          });
 
           listContainer.innerHTML = sortedDates.map(dateKey => {
             const dayItems = groupedByDate[dateKey];
@@ -1944,6 +1954,7 @@
       mainSortMode = mode;
       const btnMap = {
         latest: document.getElementById('mainSortLatestBtn'),
+        oldest: document.getElementById('mainSortOldestBtn'),
         amount_desc: document.getElementById('mainSortHighBtn'),
         amount_asc: document.getElementById('mainSortLowBtn')
       };
@@ -2976,6 +2987,7 @@
       accountSortMode = mode;
       const btnMap = {
         latest: document.getElementById('accSortLatestBtn'),
+        oldest: document.getElementById('accSortOldestBtn'),
         amount_desc: document.getElementById('accSortHighBtn'),
         amount_asc: document.getElementById('accSortLowBtn')
       };
@@ -3084,13 +3096,17 @@
         } else if (accountSortMode === 'amount_asc') {
           const diff = Number(a.amount) - Number(b.amount);
           if (diff !== 0) return diff;
+        } else if (accountSortMode === 'oldest') {
+          const dateDiff = new Date(a.date) - new Date(b.date);
+          if (dateDiff !== 0) return dateDiff;
+          return (a.id || 0) - (b.id || 0);
         }
         const dateDiff = new Date(b.date) - new Date(a.date);
         if (dateDiff !== 0) return dateDiff;
         return (b.id || 0) - (a.id || 0);
       });
 
-      // 정렬 기준(최신순 / 높은금액순 / 낮은금액순)에 맞춰 계좌 내역 카드 렌더링
+      // 정렬 기준(최신순 / 과거순 / 높은금액순 / 낮은금액순)에 맞춰 계좌 내역 카드 렌더링
       listEl.innerHTML = baseCarryOverCardHtml + sortedAccountItems.map(item => {
         const isIncome = item.type === 'income';
         const isAtmW = isAtmWithdraw(item);
