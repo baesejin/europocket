@@ -1,4 +1,4 @@
-const CACHE_NAME = 'europocket-cache-v1.0.30';
+const CACHE_NAME = 'europocket-cache-v1.0.33';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
