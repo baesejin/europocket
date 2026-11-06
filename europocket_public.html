@@ -830,24 +830,6 @@
             </button>
           </div>
         </div>
-
-        <!-- Direct Current Cash Balance Adjustment -->
-        <div class="pt-3 border-t border-slate-100 space-y-1.5">
-          <label class="block text-[11px] font-bold text-slate-500">
-            현재 지갑 속 현금 잔액 직접 맞추기 (€, 내역 추가 없음)
-          </label>
-          <div class="flex items-center gap-2">
-            <input type="number" step="0.01" id="directCashBalanceInput" placeholder="예: 30.00"
-              class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:border-slate-400">
-            <button type="button" onclick="saveDirectCashBalance()"
-              class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition whitespace-nowrap">
-              잔액 맞추기
-            </button>
-          </div>
-          <p class="text-[10px] text-slate-400 leading-relaxed">
-            * 입력 순서에 상관없이 <b>[기초원금 + ATM 인출 - ATM 입금 + 현금 수입 - 현금 지출]</b>이 계산되어 반영됩니다.
-          </p>
-        </div>
       </div>
     </div>
 
@@ -2607,9 +2589,7 @@
     function openCashPocketModal() {
       setAtmMode('withdraw');
       renderCashPocket();
-      const { currentBalance } = getCashPocketStats();
       document.getElementById('atmStageInput').value = 0;
-      document.getElementById('directCashBalanceInput').value = currentBalance.toFixed(2);
       document.getElementById('cashPocketModal').classList.remove('hidden');
     }
 
@@ -2660,39 +2640,6 @@
 
       document.getElementById('atmStageInput').value = 0;
       renderUI();
-      const { currentBalance } = getCashPocketStats();
-      document.getElementById('directCashBalanceInput').value = currentBalance.toFixed(2);
-    }
-
-    function saveDirectCashBalance() {
-      const targetBalance = parseFloat(document.getElementById('directCashBalanceInput').value);
-      if (isNaN(targetBalance)) {
-        alert('올바른 금액(€)을 입력해 주세요.');
-        return;
-      }
-      // 내역 추가 없이 현재 조회 월 말일까지의 누적 현금 지출/수입/ATM인출·입금 내역을 반영하여 기초 보유 원금을 역산
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1;
-      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
-      const upToItems = expenses.filter(item => item.date && item.date.slice(0, 7) <= monthKey);
-      const cumAtmWithdraw = upToItems
-        .filter(item => isAtmWithdraw(item))
-        .reduce((sum, item) => sum + Number(item.amount), 0);
-      const cumAtmDeposit = upToItems
-        .filter(item => isAtmDeposit(item))
-        .reduce((sum, item) => sum + Number(item.amount), 0);
-      const cumCashExpense = upToItems
-        .filter(item => item.payment === '현금' && (item.type || 'expense') === 'expense')
-        .reduce((sum, item) => sum + Number(item.amount), 0);
-      const cumCashIncome = upToItems
-        .filter(item => item.payment === '현금' && item.type === 'income')
-        .reduce((sum, item) => sum + Number(item.amount), 0);
-
-      cashWalletBase = Number((targetBalance - cumAtmWithdraw + cumAtmDeposit - cumCashIncome + cumCashExpense).toFixed(2));
-      localStorage.setItem('europocket_pub_cash_base_v3', cashWalletBase);
-      localStorage.setItem('europocket_pub_cash_charged_v2', Number((cashWalletBase + cumAtmWithdraw - cumAtmDeposit).toFixed(2)));
-      renderUI();
-      closeCashPocketModal();
     }
 
     // ==========================================
