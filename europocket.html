@@ -459,7 +459,7 @@
 
     <!-- Modal: Master Settings (Gear Icon) & Category Edit -->
     <div id="settingsModal"
-      class="hidden fixed inset-0 z-[55] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      class="hidden fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
         class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl space-y-3 max-h-[90vh] flex flex-col">
         <!-- Modal Header -->
@@ -705,7 +705,7 @@
 
     <!-- Modal: Category Icon Preset Picker (24 Fixed Icon + Color Sets) -->
     <div id="iconPickerModal"
-      class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      class="hidden fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-shrink-0">
@@ -2568,6 +2568,7 @@
 
     function closeSettingsModal() {
       document.getElementById('settingsModal').classList.add('hidden');
+      renderCategoryChips();
     }
 
     function switchSettingsCategoryTab(tab) {
@@ -3878,13 +3879,13 @@
     // 모달이나 검색 화면이 열려있을 때 뒤로가기를 누르면 앱이 꺼지지 않고 닫히도록 처리
     // ==========================================
     const MODAL_IDS_BY_PRIORITY = [
+      'iconPickerModal',
+      'settingsModal',
       'addModal',
       'travelCardTopUpModal',
-      'iconPickerModal',
       'cashPocketModal',
       'travelCardModal',
       'accountHistoryModal',
-      'settingsModal',
       'exchangeModal',
       'budgetModal',
       'monthPickerModal'
