@@ -11,23 +11,22 @@
   "lang": "ko",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "./europocket_logo/europocket_logo_small.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "./europocket_logo/europocket_logo_big.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512-maskable.png",
+      "src": "./europocket_logo/europocket_logo_square.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ]
 }
-
